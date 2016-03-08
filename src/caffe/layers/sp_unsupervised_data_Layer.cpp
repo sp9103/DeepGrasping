@@ -116,24 +116,6 @@ void SPUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
 
 	for (int i = 0; i < batch_size_; i++){
 		//RGB ·Îµå
-		/*cv::Mat src = this->data.at(randbox[dataidx]);
-		cv::Mat labelimg = this->label.at(randbox[dataidx]);*/
-
-		//cv::imshow("src", src);
-		//cv::imshow("label", labelimg);
-		//cv::waitKey(0);
-
-		//for (int h = 0; h < height_; h++){
-		//	for (int w = 0; w < width_; w++){
-		//		for (int c = 0; c < src.channels(); c++){
-		//			data[c*height_*width_ + width_*h + w] = (Dtype)src.at</*cv::Vec3b*/cv::Vec3f/*float*/>(h, w)[c]/* - (Dtype)mean_val[c]*/;
-		//		}
-		//	}
-		//}
-
-		//for (int j = 0; j < labelimg.cols * labelimg.rows; j++){
-		//	label[j] = (Dtype)labelimg.at</*uchar*/float>(j);
-		//}
 		RGBImgData srcImg = this->data_blob.at(randbox[dataidx]);
 		LabelData labelImg = this->label_blob.at(randbox[dataidx]);
 
@@ -223,17 +205,6 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 
 				data_blob.push_back(tempData);
 				label_blob.push_back(tempLabel);
-
-
-				//dataimage.convertTo(dataimage, CV_32FC3, 1.0 / 255.0);
-				//labelimage.convertTo(labelimage, CV_32FC1, 1.0 / 255.0);
-
-				/*cv::imshow("dataImage", dataimage);
-				cv::imshow("labelimage", labelimage);
-				cv::waitKey(0);*/
-
-				//data.push_back(dataimage);
-				//label.push_back(labelimage);
 			}
 		}
 
