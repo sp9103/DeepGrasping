@@ -1,0 +1,20 @@
+#net: "train_val.prototxt"
+#net: "train_val_whitening.prototxt"
+#net: "train_val_reconstruct.prototxt"
+#net: "train_val_unsupervised.prototxt"
+net: "train_val_Supervised.prototxt"
+test_iter: 1
+test_interval: 10000
+test_initialization: false
+
+base_lr: 0.01
+lr_policy: "step"
+gamma: 1
+stepsize: 300000
+display: 100
+max_iter: 600000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 10000
+snapshot_prefix: "snapshot_supervised/End_to_End"
+solver_mode: GPU

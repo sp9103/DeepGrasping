@@ -1,0 +1,161 @@
+name: "uvd_xyz_net"
+layer {
+  name: "data"
+  type: "UVDXYZData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  sp_unsupervised_data_param {
+    batch_size: 400000
+    data_path : "./uvd_xyz/uvd_xyz_rgb_frame.bin"
+  }
+}
+layer {
+  name: "data"
+  type: "UVDXYZData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  sp_unsupervised_data_param {
+   batch_size: 18000
+   data_path : "./uvd_xyz/uvd_xyz_rgb_test_2.bin"
+  }
+}
+layer {
+  name: "uvd_xyz_fc1"
+  type: "InnerProduct"
+  bottom: "data"
+  top: "uvd_xyz_fc1"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 32
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "uvd_xyz_bn1"
+  type: "BatchNorm"
+  bottom: "uvd_xyz_fc1"
+  top: "uvd_xyz_fc1"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+layer {
+  name: "uvd_xyz_relu1"
+  type: "ReLU"
+  bottom: "uvd_xyz_fc1"
+  top: "uvd_xyz_fc1"
+}
+layer {
+  name: "uvd_xyz_fc2"
+  type: "InnerProduct"
+  bottom: "uvd_xyz_fc1"
+  top: "uvd_xyz_fc2"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 32
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "uvd_xyz_bn2"
+  type: "BatchNorm"
+  bottom: "uvd_xyz_fc2"
+  top: "uvd_xyz_fc2"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+layer {
+  name: "uvd_xyz_relu2"
+  type: "ReLU"
+  bottom: "uvd_xyz_fc2"
+  top: "uvd_xyz_fc2"
+}
+layer {
+  name: "uvd_xyz_fc3"
+  type: "InnerProduct"
+  bottom: "uvd_xyz_fc2"
+  top: "uvd_xyz_fc3"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "distance"
+  type: "EuclideanDist"
+  bottom: "uvd_xyz_fc3"
+  bottom: "label"
+  top: "accuracy"
+  include {
+    phase: TEST
+  }
+}
+layer {
+  name: "loss"
+  type: "EuclideanLoss"
+  bottom: "uvd_xyz_fc3"
+  bottom: "label"
+  top: "l2_error"
+}
