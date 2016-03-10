@@ -462,58 +462,6 @@ protected:
 	int dataidx;
 };
 
-/**
-* @brief Provides data to the Net from memory.
-*
-* TODO(dox): thorough documentation for Forward and proto params.
-//Unsupervised position layer
-*/
-template <typename Dtype>
-class SPUnsupervisedPosLayer : public BaseDataLayer<Dtype> {
-public:
-	explicit SPUnsupervisedPosLayer(const LayerParameter& param)
-		: BaseDataLayer<Dtype>(param) {}
-	virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
-
-	virtual inline const char* type() const { return "SPUnsupervisedPos"; }
-	virtual inline int ExactNumBottomBlobs() const { return 0; }
-	virtual inline int ExactNumTopBlobs() const { return 2; }
-
-	// Reset should accept const pointers, but can't, because the memory
-	//  will be given to Blob, which is mutable
-	void Reset(Dtype* data, Dtype* label, int n);
-	void set_batch_size(int new_size);
-
-	int batch_size() { return batch_size_; }
-	int channels() { return channels_; }
-	int height() { return height_; }
-	int width() { return width_; }
-	int data_limit() { return data_limit_; }
-
-protected:
-	virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-		const vector<Blob<Dtype>*>& top);
-
-	void ImageloadAll(const char* datapath);
-	void PoslaodAll(const char* pospath);
-
-	int batch_size_, channels_, height_, width_, size_;
-	int n_;
-	int data_limit_;
-
-	std::string data_path_;
-	std::string pos_path_;
-
-	struct struct_pos{ float pos[64]; };
-
-	std::vector<cv::Mat> data;
-	std::vector<struct_pos> label;
-
-	int *randbox;
-	int dataidx;
-};
-
 //MNIST LOADER
 template <typename Dtype>
 class MNISTDataLayer : public BaseDataLayer<Dtype> {

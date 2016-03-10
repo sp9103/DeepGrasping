@@ -267,9 +267,6 @@
     <ClCompile Include="..\..\src\caffe\layers\batch_norm_layer.cpp">
       <Filter>layers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\caffe\layers\sp_unsupervised_pos_layer.cpp">
-      <Filter>layers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\caffe\layers\mnist_data_layer.cpp">
       <Filter>layers</Filter>
     </ClCompile>
