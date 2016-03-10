@@ -12,17 +12,6 @@
 #include <Windows.h>
 #include <time.h>
 
-void makeRandbox(int *arr, int size){
-	for (int i = 0; i < size; i++)
-		arr[i] = i;
-	for (int i = 0; i < size; i++){
-		int tidx = rand() % size;
-		int t = arr[i];
-		arr[i] = arr[tidx];
-		arr[tidx] = t;
-	}
-}
-
 namespace caffe {
 
 template <typename Dtype>
@@ -54,7 +43,7 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>
   top[1]->Reshape(label_shape);
 
   //전체 로드
-  UnsupervisedImageloadAll(data_path_.c_str(), label_path_.c_str());
+  RGBDImageloadAll(data_path_.c_str());
   CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
   CHECK_GT(data_blob.size(), 0) << "data is empty";
   //CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
@@ -90,9 +79,6 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::set_batch_size(int new_size) {
 template <typename Dtype>
 void SPRGBDUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
-
-	//int sTime = clock();
-	const float mean_val[3] = { 103.939, 116.779, 123.68 }; // bgr mean
 	Dtype* label = top[1]->mutable_cpu_data();
 	Dtype* data = top[0]->mutable_cpu_data();
 
@@ -136,21 +122,23 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 		char tBuf[MAX_PATH];
 		WideCharToMultiByte(CP_ACP, 0, subDir, MAX_PATH, tBuf, MAX_PATH, NULL, NULL);
 
+		//Tchar to char
+		char ccFileName[256];
+		WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, len, ccFileName, 256, NULL, NULL);
 
-		if (fileTypeCheck(ffd.cFileName)){
+		if (strcmp(ccFileName, "DEPTH") || strcmp(ccFileName, "XYZMAP"))		continue;
+
+		if (fileTypeCheck(ccFileName)){
 			cv::Mat dataimage;
+			cv::Mat labelimage;
 
 			dataimage = cv::imread(tBuf);
-			//labelimage = cv::imread(tlabelBuf);
 			if (channels_ == 1){
 				cv::cvtColor(dataimage, dataimage, CV_BGR2GRAY);
 			}
 
-			cv::imshow("ori", dataimage);
-			cv::waitKey(0);
-
+			if (height_ != dataimage.rows || width_ != dataimage.cols)
 			cv::resize(dataimage, dataimage, cv::Size(height_, width_));
-
 			cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));
 
 			if (labelimage.channels() != 1){
@@ -164,8 +152,14 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 				for (int h = 0; h < dataimage.rows; h++){
 					for (int w = 0; w < dataimage.cols; w++){
 						for (int c = 0; c < dataimage.channels(); c++){
-							tempData.data[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b/*uchar*/>(h, w)[c] / 255.0f;
+							tempData.data[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
 						}
+					}
+				}
+				//Depth 정보 넣어주기
+				for (int h = 0; h < dataimage.rows; h++){
+					for (int w = 0; w < dataimage.cols; w++){
+						//tempData.data[3*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
 					}
 				}
 
@@ -191,9 +185,9 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 }
 
 template <typename Dtype>
-bool SPRGBDUnsupervisedDataLayer<Dtype>::fileTypeCheck(TCHAR *fileName){
+bool SPRGBDUnsupervisedDataLayer<Dtype>::fileTypeCheck(char *fileName){
 	size_t fileLen;
-	StringCchLength(fileName, MAX_PATH, &fileLen);
+	fileLen = strlen(fileName);
 
 	if (fileLen < 5)
 		return false;
@@ -206,6 +200,18 @@ bool SPRGBDUnsupervisedDataLayer<Dtype>::fileTypeCheck(TCHAR *fileName){
 		return false;
 
 	return true;
+}
+
+template <typename Dtype>
+void SPRGBDUnsupervisedDataLayer<Dtype>::makeRandbox(int *arr, int size){
+	for (int i = 0; i < size; i++)
+		arr[i] = i;
+	for (int i = 0; i < size; i++){
+		int tidx = rand() % size;
+		int t = arr[i];
+		arr[i] = arr[tidx];
+		arr[tidx] = t;
+	}
 }
 
 INSTANTIATE_CLASS(SPRGBDUnsupervisedDataLayer);

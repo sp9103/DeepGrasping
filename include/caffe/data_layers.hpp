@@ -433,7 +433,8 @@ protected:
 		const vector<Blob<Dtype>*>& top);
 
 	void RGBDImageloadAll(const char* datapath);
-	bool fileTypeCheck(TCHAR *fileName);
+	bool fileTypeCheck(char *fileName);
+	void makeRandbox(int *arr, int size);
 
 	int batch_size_, channels_, height_, width_, size_;
 	int labelHeight_, labelWidth_;
@@ -442,7 +443,7 @@ protected:
 	size_t pos_;
 
 	typedef struct RGBimgData_{
-		Dtype data[160 * 160 * 3];
+		Dtype data[160 * 160 * 4];
 	}RGBImgData;
 
 	typedef struct LabelData_{
