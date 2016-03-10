@@ -83,8 +83,8 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>&
 		cv::Mat srcImg = this->data_blob.at(randbox[dataidx]);
 		cv::Mat labelImg = this->label_blob.at(randbox[dataidx]);
 
-		/*caffe_copy(channels_ * height_ * width_, srcImg.data, data);
-		caffe_copy(labelHeight_ * labelWidth_, labelImg.data, label);*/
+		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
+		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -131,7 +131,8 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 			cv::Mat tempdataMat;
 			cv::Mat templabelMat;
 			
-			tempdataMat.create(height_, width_, CV_32FC4);
+			//tempdataMat.create(height_, width_, CV_32FC4);
+			tempdataMat.create(height_, width_, CV_32FC3);
 			templabelMat.create(labelHeight_, labelWidth_, CV_32FC1);
 
 			dataimage = cv::imread(tBuf);
@@ -150,22 +151,26 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 				for (int h = 0; h < dataimage.rows; h++){
 					for (int w = 0; w < dataimage.cols; w++){
 						for (int c = 0; c < dataimage.channels(); c++){
-							tempdataMat.at<cv::Vec4f>(h,w)[c] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+							/*tempdataMat.at<cv::Vec4f>(h,w)[c]*/tempdataMat.ptr<float>(0)[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
 						}
 					}
 				}
-				//Depth 정보 넣어주기
-				for (int h = 0; h < dataimage.rows; h++){
-					for (int w = 0; w < dataimage.cols; w++){
-						//tempData.data[3*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
-					}
-				}
+				////Depth 정보 넣어주기
+				//for (int h = 0; h < dataimage.rows; h++){
+				//	for (int w = 0; w < dataimage.cols; w++){
+				//		//tempData.data[3*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+				//	}
+				//}
 
 				for (int h = 0; h < labelimage.rows; h++){
 					for (int w = 0; w < labelimage.cols; w++){
-						templabelMat.at<float>(h,w) = (float)labelimage.at<uchar>(h, w) / 255.0f;
+						/*templabelMat.at<float>(h,w)*/templabelMat.ptr<float>(0)[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
 					}
 				}
+
+				cv::imshow("input", tempdataMat);
+				cv::imshow("label", templabelMat);
+				cv::waitKey(0);
 
 				data_blob.push_back(tempdataMat);
 				label_blob.push_back(templabelMat);
