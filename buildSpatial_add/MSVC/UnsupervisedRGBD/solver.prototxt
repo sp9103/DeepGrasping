@@ -1,4 +1,5 @@
-net: "train_val_unsupervised_RGB.prototxt"
+#net: "train_val_unsupervised_RGB.prototxt"
+net: "UnsupervisedRGBD/train_val_unsupervised_RGBD.prototxt"
 
 test_iter: 1
 test_interval: 1000

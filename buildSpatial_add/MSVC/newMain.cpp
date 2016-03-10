@@ -411,7 +411,7 @@ int main(int argc, char** argv) {
 
 	///////////////////unsupervised learning////////////////////////////////////////////////////////////////
 	int targc = 4;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedLearning/solver.prototxt", "--gpu=all" };
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--gpu=all" };
 
 	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", "--snapshot=snapshot_uvd_xyz/uvd_xyz_iter_173000.solverstate", "--gpu=all" };*/

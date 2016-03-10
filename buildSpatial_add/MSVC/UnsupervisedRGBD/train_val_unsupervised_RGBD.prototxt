@@ -1,7 +1,7 @@
 name: "Unsupervised_TNet"
 layer {
   name: "data"
-  type: "SPUnsupervisedData"
+  type: "SPRGBDUnsupervisedData"
   top: "data"
   top: "label"
   include {
@@ -9,22 +9,17 @@ layer {
   }
   sp_unsupervised_data_param {
     batch_size: 80
-    channels: 3
-    height : 120
-    width : 120
-    #data_path : "E:/ImageData/Small_Data"
-    #label_path : "E:/ImageData/Small_Label"
-    #data_path : "E:/ImageData/DummyInput"
-    #label_path : "E:/ImageData/DummyLabel"
-    data_path : "E:/ImageData/Generation/RGB"
-    label_path : "E:/ImageData/Generation/RGB"
+    channels: 4
+    height : 160
+    width : 160
+    data_path : "D:/RGBDData/UnsupervisedLearning"
  
     #data_limit : 110
   }
 }
 layer {
   name: "data"
-  type: "SPUnsupervisedData"
+  type: "SPRGBDUnsupervisedData"
   top: "data"
   top: "label"
   include {
@@ -32,12 +27,10 @@ layer {
   }
   sp_unsupervised_data_param {
     batch_size: 1
-    channels: 3
-    height : 120
-    width : 120
-    data_path : "E:/ImageData/Generation/RGB"
-    label_path : "E:/ImageData/Generation/RGB"
-
+    channels: 4
+    height : 160
+    width : 160
+    data_path : "D:/RGBDData/UnsupervisedLearning"
     data_limit : 1
   }
 }
@@ -49,11 +42,9 @@ layer {
   param {
     lr_mult: 1
     decay_mult: 1
-    #decay_mult: 0
   }
   param {
     lr_mult: 2
-    #lr_mult: 1
     decay_mult: 0
   }
   convolution_param {
@@ -74,7 +65,7 @@ layer {
   name: "bn1"
   type: "BatchNorm"
   bottom: "conv1"
-  top: "bn1"
+  top: "conv1"
   param {
     lr_mult: 0
   }
@@ -88,13 +79,13 @@ layer {
 layer {
   name: "relu1"
   type: "ReLU"
-  bottom: "bn1"
-  top: "bn1"
+  bottom: "conv1"
+  top: "conv1"
 }
 layer {
   name: "conv2"
   type: "Convolution"
-  bottom: "bn1"
+  bottom: "conv1"
   top: "conv2"
   param {
     lr_mult: 1
@@ -121,7 +112,7 @@ layer {
   name: "bn2"
   type: "BatchNorm"
   bottom: "conv2"
-  top: "bn2"
+  top: "conv2"
   param {
     lr_mult: 0
   }
@@ -135,13 +126,13 @@ layer {
 layer {
   name: "relu2"
   type: "ReLU"
-  bottom: "bn2"
-  top: "bn2"
+  bottom: "conv2"
+  top: "conv2"
 }
 layer {
   name: "conv3"
   type: "Convolution"
-  bottom: "bn2"
+  bottom: "conv2"
   top: "conv3"
   param {
     lr_mult: 1
@@ -168,7 +159,7 @@ layer {
   name: "bn3"
   type: "BatchNorm"
   bottom: "conv3"
-  top: "bn3"
+  top: "conv3"
   param {
     lr_mult: 0
   }
@@ -182,24 +173,18 @@ layer {
 layer {
   name: "relu3"
   type: "ReLU"
-  bottom: "bn3"
-  top: "bn3"
+  bottom: "conv3"
+  top: "conv3"
 }
 layer {
   name: "spatial"
   type: "Spatial"
-  bottom: "bn3"
+  bottom: "conv3"
   top: "spatial1"
   spatial_param{
 	alpha: 4
   }
 }
-#layer {
-#    name: "SpatialPooling"
-#    type: "SpatialPooling"
-#    bottom: "bn3"
-#    top: "spatial1"
-#}
 layer {
   name: "fc1"
   type: "InnerProduct"
@@ -235,11 +220,3 @@ layer {
   top: "l2_error"
   loss_weight: 1
 }
-#layer {
-#  name: "SigmoidCrossEntropyLoss"
-#  type: "SigmoidCrossEntropyLoss"
-#  bottom: "fc1"
-#  bottom: "label"
-#  top: "cross_entropy_loss"
-#  loss_weight: 1
-#}

@@ -80,11 +80,11 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>&
 
 	for (int i = 0; i < batch_size_; i++){
 		//RGB ·Îµå
-		RGBImgData srcImg = this->data_blob.at(randbox[dataidx]);
-		LabelData labelImg = this->label_blob.at(randbox[dataidx]);
+		cv::Mat srcImg = this->data_blob.at(randbox[dataidx]);
+		cv::Mat labelImg = this->label_blob.at(randbox[dataidx]);
 
-		caffe_copy(channels_ * height_ * width_, srcImg.data, data);
-		caffe_copy(labelHeight_ * labelWidth_, labelImg.data, label);
+		/*caffe_copy(channels_ * height_ * width_, srcImg.data, data);
+		caffe_copy(labelHeight_ * labelWidth_, labelImg.data, label);*/
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -122,11 +122,17 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 		char ccFileName[256];
 		WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, len, ccFileName, 256, NULL, NULL);
 
-		if (strcmp(ccFileName, "DEPTH") || strcmp(ccFileName, "XYZMAP"))		continue;
+		if (!strcmp(ccFileName, "DEPTHMAP") || !strcmp(ccFileName, "XYZMAP"))		continue;
 
 		if (fileTypeCheck(ccFileName)){
 			cv::Mat dataimage;
 			cv::Mat labelimage;
+
+			cv::Mat tempdataMat;
+			cv::Mat templabelMat;
+			
+			tempdataMat.create(height_, width_, CV_32FC4);
+			templabelMat.create(labelHeight_, labelWidth_, CV_32FC1);
 
 			dataimage = cv::imread(tBuf);
 			if (channels_ == 1){
@@ -136,19 +142,15 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 			if (height_ != dataimage.rows || width_ != dataimage.cols)
 				cv::resize(dataimage, dataimage, cv::Size(height_, width_));
 			cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));
-
-			if (labelimage.channels() != 1){
+			if (dataimage.channels() != 1){
 				cv::cvtColor(labelimage, labelimage, CV_BGR2GRAY);
 			}
 
 			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
-
-				RGBImgData tempData;
-				LabelData tempLabel;
 				for (int h = 0; h < dataimage.rows; h++){
 					for (int w = 0; w < dataimage.cols; w++){
 						for (int c = 0; c < dataimage.channels(); c++){
-							tempData.data[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+							tempdataMat.at<cv::Vec4f>(h,w)[c] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
 						}
 					}
 				}
@@ -161,12 +163,12 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 
 				for (int h = 0; h < labelimage.rows; h++){
 					for (int w = 0; w < labelimage.cols; w++){
-						tempLabel.data[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
+						templabelMat.at<float>(h,w) = (float)labelimage.at<uchar>(h, w) / 255.0f;
 					}
 				}
 
-				data_blob.push_back(tempData);
-				label_blob.push_back(tempLabel);
+				data_blob.push_back(tempdataMat);
+				label_blob.push_back(templabelMat);
 			}
 		}
 
