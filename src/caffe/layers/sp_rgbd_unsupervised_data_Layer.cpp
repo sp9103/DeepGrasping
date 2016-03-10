@@ -23,19 +23,15 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>
 	width_ = this->layer_param_.sp_unsupervised_data_param().width();
 
 	data_path_ = this->layer_param_.sp_unsupervised_data_param().data_path();
-	label_path_ = this->layer_param_.sp_unsupervised_data_param().label_path();
 	data_limit_ = this->layer_param_.sp_unsupervised_data_param().data_limit();
 
   size_ = channels_ * height_ * width_;
   CHECK_GT(batch_size_ * size_, 0) <<
       "batch_size, channels, height, and width must be specified and"
       " positive in memory_data_param";
-  //int tSize = height_ * width_ / 4 / 4;
-  //int tSize = height_ * width_ / 2 / 2;
   labelHeight_ = 80;
   labelWidth_ = 80;
   int tSize = labelHeight_ * labelWidth_;
-  //vector<int> label_shape(1, batch_size_);
   top[0]->Reshape(batch_size_, channels_, height_, width_);
   vector<int> label_shape = top[0]->shape();
   label_shape.resize(1 + 1);
@@ -138,7 +134,7 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 			}
 
 			if (height_ != dataimage.rows || width_ != dataimage.cols)
-			cv::resize(dataimage, dataimage, cv::Size(height_, width_));
+				cv::resize(dataimage, dataimage, cv::Size(height_, width_));
 			cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));
 
 			if (labelimage.channels() != 1){

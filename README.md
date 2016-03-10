@@ -1,4 +1,5 @@
 Forked from https://www.github.com/BVLC/caffe master branch in 2015/9/1
+(And Forked from https://github.com/happynear/caffe-windows master branch)
 
 Added [Batch Normalization](http://arxiv.org/abs/1502.03167), [Parametric ReLU](http://arxiv.org/abs/1502.01852), Locally Connected Layer, Normalize Layer, [Randomized ReLU](http://arxiv.org/abs/1505.00853), Triplet Loss, SmoothL1 Layer, ROI Layer. 
 
@@ -34,7 +35,7 @@ TIPS: If you have MKL library, please add the preprocess macro "USE_MKL" defined
 
 If you want build other tools, just copy and rename `./build/MSVC` folder to another one, and add the new project to the VS solution. Remove `caffe.cpp` and add your target cpp file. Compile it, then you will get a corresponding exe file in `./bin`.
 
-中文安装说明：http://blog.csdn.net/happynear/article/details/45372231
+�?��安装说明：http://blog.csdn.net/happynear/article/details/45372231
 
 Matlab Wrapper
 ======
