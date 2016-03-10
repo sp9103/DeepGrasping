@@ -278,6 +278,7 @@
     <ClCompile Include="..\..\src\caffe\layers\spatial_pooling_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\split_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\spp_layer.cpp" />
+    <ClCompile Include="..\..\src\caffe\layers\sp_rgbd_unsupervised_data_Layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\sp_supervised_data_Layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\sp_unsupervised_data_Layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\sp_unsupervised_pos_layer.cpp" />

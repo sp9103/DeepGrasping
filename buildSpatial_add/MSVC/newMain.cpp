@@ -404,12 +404,14 @@ int main(int argc, char** argv) {
 
 	//int targc = 4;
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", "--gpu=all" };
-	int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", "--weights=snapshot_uvd_xyz/uvd_xyz_iter_133000.caffemodel", "--gpu=all" };
+	//int targc = 5;
+	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", "--weights=snapshot_uvd_xyz/uvd_xyz_iter_133000.caffemodel", "--gpu=all" };
 	//int targc = 4;
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", /*"--weights=Matlab_uvd_xyz/uvd_xyz_iter_6000.caffemodel",*/ "--gpu=all" };
 
-
+	///////////////////unsupervised learning////////////////////////////////////////////////////////////////
+	int targc = 4;
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedLearning/solver.prototxt", "--gpu=all" };
 
 	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", "--snapshot=snapshot_uvd_xyz/uvd_xyz_iter_173000.solverstate", "--gpu=all" };*/

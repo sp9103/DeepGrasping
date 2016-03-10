@@ -288,6 +288,9 @@
     <ClCompile Include="..\..\src\caffe\layers\euclidean_dist_layer.cpp">
       <Filter>layers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\caffe\layers\sp_rgbd_unsupervised_data_Layer.cpp">
+      <Filter>layers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\caffe\proto\caffe.pb.h">

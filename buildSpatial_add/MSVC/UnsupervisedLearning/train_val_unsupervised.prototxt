@@ -10,8 +10,8 @@ layer {
   sp_unsupervised_data_param {
     batch_size: 80
     channels: 3
-    height : 120
-    width : 120
+    height : 160
+    width : 160
     #data_path : "E:/ImageData/Small_Data"
     #label_path : "E:/ImageData/Small_Label"
     #data_path : "E:/ImageData/DummyInput"

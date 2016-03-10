@@ -381,7 +381,68 @@ protected:
 	size_t pos_;
 
 	typedef struct RGBimgData_{
-		Dtype data[80 * 80 * 3];
+		Dtype data[160 * 160 * 3];
+	}RGBImgData;
+
+	typedef struct LabelData_{
+		Dtype data[80 * 80];
+	}LabelData;
+
+	std::string data_path_;
+	std::string label_path_;
+
+	std::vector<cv::Mat> data;
+	std::vector<cv::Mat> label;
+	std::vector<RGBImgData> data_blob;
+	std::vector<LabelData> label_blob;
+
+	int *randbox;
+	int dataidx;
+};
+
+/**
+* @brief Provides data to the Net from memory.
+*
+* TODO(dox): thorough documentation for Forward and proto params.
+*/
+template <typename Dtype>
+class SPRGBDUnsupervisedDataLayer : public BaseDataLayer<Dtype> {
+public:
+	explicit SPRGBDUnsupervisedDataLayer(const LayerParameter& param)
+		: BaseDataLayer<Dtype>(param) {}
+	virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
+		const vector<Blob<Dtype>*>& top);
+
+	virtual inline const char* type() const { return "SPRGBDUnsupervisedData"; }
+	virtual inline int ExactNumBottomBlobs() const { return 0; }
+	virtual inline int ExactNumTopBlobs() const { return 2; }
+
+	// Reset should accept const pointers, but can't, because the memory
+	//  will be given to Blob, which is mutable
+	void Reset(Dtype* data, Dtype* label, int n);
+	void set_batch_size(int new_size);
+
+	int batch_size() { return batch_size_; }
+	int channels() { return channels_; }
+	int height() { return height_; }
+	int width() { return width_; }
+	int data_limit() { return data_limit_; }
+
+protected:
+	virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+		const vector<Blob<Dtype>*>& top);
+
+	void RGBDImageloadAll(const char* datapath);
+	bool fileTypeCheck(TCHAR *fileName);
+
+	int batch_size_, channels_, height_, width_, size_;
+	int labelHeight_, labelWidth_;
+	int n_;
+	int data_limit_;
+	size_t pos_;
+
+	typedef struct RGBimgData_{
+		Dtype data[160 * 160 * 3];
 	}RGBImgData;
 
 	typedef struct LabelData_{
