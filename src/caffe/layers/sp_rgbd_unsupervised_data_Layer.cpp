@@ -154,6 +154,7 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 		if (fileTypeCheck(ccFileName)){
 			cv::Mat dataimage;
 			cv::Mat labelimage;
+			cv::Mat depthMap;
 
 			cv::Mat tempdataMat;
 			cv::Mat templabelMat;
@@ -189,11 +190,41 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 				}
 
 				//Depth 열고 넣어주기
-				for (int h = 0; h < dataimage.rows; h++){
-					for (int w = 0; w < dataimage.cols; w++){
-						//tempData.data[3*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
-					}
+				int depthpathlen = strlen(tdepthBuf);
+				int depthwidth, depthheight, depthType;
+				tdepthBuf[depthpathlen - 3] = 'b';
+				tdepthBuf[depthpathlen - 2] = 'i';
+				tdepthBuf[depthpathlen - 1] = 'n';
+				FILE *fp = fopen(tdepthBuf, "rb");
+				fread(&depthwidth, sizeof(int), 1, fp);
+				fread(&depthheight, sizeof(int), 1, fp);
+				fread(&depthType, sizeof(int), 1, fp);
+				depthMap.create(depthheight, depthwidth, depthType);
+				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+				fclose(fp);
+
+				float max = -99999;
+				float min = 99999;
+				for (int k = 0; k < depthMap.rows * depthMap.cols; k++){
+					if (max < depthMap.at<float>(k))	max = depthMap.at<float>(k);
+					if(depthMap.at<float>(k) != 0 && depthMap.at<float>(k) < min)	min = depthMap.at<float>(k);
 				}
+
+				for (int k = 0; k < depthMap.rows * depthMap.cols; k++){
+					printf("%f\t", depthMap.at<float>(k));
+					if (depthMap.at<float>(k) != 0)
+						depthMap.at<float>(k) = (depthMap.at<float>(k) -min) / (max - min);
+				}
+
+				cv::imshow("label", templabelMat);
+				cv::imshow("depthMap", depthMap);
+				cv::waitKey(0);
+
+				/*for (int h = 0; h < depthMap.rows; h++){
+					for (int w = 0; w < depthMap.cols; w++){
+						tempData.data[3 * height_*width_ + width_*h + w] = (float)depthMap.at<float>(h, w) / 255.0f;
+					}
+				}*/
 
 				data_blob.push_back(tempdataMat);
 				label_blob.push_back(templabelMat);
