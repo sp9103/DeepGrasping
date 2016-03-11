@@ -430,7 +430,7 @@ protected:
 	virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top);
 
-	void RGBDImageloadAll(const char* datapath);
+	void RGBDImageloadAll(const char* datapath, const char* depthpath);
 	bool fileTypeCheck(char *fileName);
 	void makeRandbox(int *arr, int size);
 

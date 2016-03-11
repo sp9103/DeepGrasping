@@ -14,7 +14,7 @@ layer {
     width : 160
     data_path : "D:/RGBDData/UnsupervisedLearning"
  
-    #data_limit : 110
+    data_limit : 110
   }
 }
 layer {

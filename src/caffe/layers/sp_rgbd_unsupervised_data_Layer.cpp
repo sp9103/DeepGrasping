@@ -39,7 +39,7 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>
   top[1]->Reshape(label_shape);
 
   //전체 로드
-  RGBDImageloadAll(data_path_.c_str());
+  RGBDImageloadAll(data_path_.c_str(), data_path_.c_str());
   CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
   CHECK_GT(data_blob.size(), 0) << "data is empty";
   //CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
@@ -85,6 +85,18 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>&
 
 		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
 		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
+		
+		///////////////////////////
+		cv::Mat tempMat;
+		tempMat.create(height_, width_, CV_32FC3);
+		int idx = 0;
+		for (int c = 0; c < 3; c++){
+			for (int h = 0; h < height_; h++){
+				for (int w = 0; w < width_; w++){
+					tempMat.at<cv::Vec3f>(h, w)[c] = (float)data[idx++];
+				}
+			}
+		}
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -98,29 +110,44 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>&
 }
 
 template <typename Dtype>
-void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
+void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, const char* depthpath){
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
-	TCHAR szDir[MAX_PATH] = { 0, };
+	TCHAR szDir[MAX_PATH] = { 0, }, szDepthDir[MAX_PATH] = { 0, };
 
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, datapath, strlen(datapath), szDir, MAX_PATH);
 	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
+	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, depthpath, strlen(depthpath), szDepthDir, MAX_PATH);
+	StringCchCat(szDepthDir, MAX_PATH, TEXT("\\*"));
 
 	hFind = FindFirstFile(szDir, &ffd);
 	while (FindNextFile(hFind, &ffd) != 0){
 
-		TCHAR subDir[MAX_PATH] = { 0, };
+		TCHAR subDir[MAX_PATH] = { 0, }, subDepthDir[MAX_PATH] = { 0, };
 		memcpy(subDir, szDir, sizeof(TCHAR)*MAX_PATH);
 		size_t len;
 		StringCchLength(subDir, MAX_PATH, &len);
 		subDir[len - 1] = '\0';
 		StringCchCat(subDir, MAX_PATH, ffd.cFileName);
-		char tBuf[MAX_PATH];
+		char tBuf[MAX_PATH], tdepthBuf[MAX_PATH];
 		WideCharToMultiByte(CP_ACP, 0, subDir, MAX_PATH, tBuf, MAX_PATH, NULL, NULL);
+
+		memcpy(subDepthDir, szDepthDir, sizeof(TCHAR)*MAX_PATH);
+		StringCchLength(subDepthDir, MAX_PATH, &len);
+		subDepthDir[len - 1] = '\0';
 
 		//Tchar to char
 		char ccFileName[256];
 		WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, len, ccFileName, 256, NULL, NULL);
+
+		if (!strcmp(ccFileName, "RGB")){
+			WideCharToMultiByte(CP_ACP, 0, subDepthDir, MAX_PATH, tdepthBuf, MAX_PATH, NULL, NULL);
+			strcat(tdepthBuf, "DEPTHMAP");
+		}
+		else{
+			StringCchCat(subDepthDir, MAX_PATH, ffd.cFileName);
+			WideCharToMultiByte(CP_ACP, 0, subDepthDir, MAX_PATH, tdepthBuf, MAX_PATH, NULL, NULL);
+		}
 
 		if (!strcmp(ccFileName, "DEPTHMAP") || !strcmp(ccFileName, "XYZMAP"))		continue;
 
@@ -151,26 +178,22 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 				for (int h = 0; h < dataimage.rows; h++){
 					for (int w = 0; w < dataimage.cols; w++){
 						for (int c = 0; c < dataimage.channels(); c++){
-							/*tempdataMat.at<cv::Vec4f>(h,w)[c]*/tempdataMat.ptr<float>(0)[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+							tempdataMat.ptr<float>(0)[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
 						}
 					}
 				}
-				////Depth 정보 넣어주기
-				//for (int h = 0; h < dataimage.rows; h++){
-				//	for (int w = 0; w < dataimage.cols; w++){
-				//		//tempData.data[3*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
-				//	}
-				//}
-
 				for (int h = 0; h < labelimage.rows; h++){
 					for (int w = 0; w < labelimage.cols; w++){
-						/*templabelMat.at<float>(h,w)*/templabelMat.ptr<float>(0)[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
+						templabelMat.ptr<float>(0)[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
 					}
 				}
 
-				cv::imshow("input", tempdataMat);
-				cv::imshow("label", templabelMat);
-				cv::waitKey(0);
+				//Depth 열고 넣어주기
+				for (int h = 0; h < dataimage.rows; h++){
+					for (int w = 0; w < dataimage.cols; w++){
+						//tempData.data[3*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+					}
+				}
 
 				data_blob.push_back(tempdataMat);
 				label_blob.push_back(templabelMat);
@@ -182,7 +205,7 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath){
 
 		if (ffd.dwFileAttributes == 16 && ffd.cFileName[0] != '.'){
 			printf("%s\n", tBuf);
-			RGBDImageloadAll(tBuf);
+			RGBDImageloadAll(tBuf, tdepthBuf);
 		}
 	}
 }
