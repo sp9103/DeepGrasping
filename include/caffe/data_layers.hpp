@@ -373,6 +373,7 @@ protected:
 		const vector<Blob<Dtype>*>& top);
 
 	void UnsupervisedImageloadAll(const char* datapath, const char* labelpath);
+	void makeRandbox(int *arr, int size);
 
 	int batch_size_, channels_, height_, width_, size_;
 	int labelHeight_, labelWidth_;
@@ -380,19 +381,11 @@ protected:
 	int data_limit_;
 	size_t pos_;
 
-	typedef struct RGBimgData_{
-		Dtype data[160 * 160 * 4];
-	}RGBImgData;
-
-	typedef struct LabelData_{
-		Dtype data[80 * 80];
-	}LabelData;
-
 	std::string data_path_;
 	std::string label_path_;
 
-	std::vector<RGBImgData> data_blob;
-	std::vector<LabelData> label_blob;
+	std::vector<cv::Mat> data_blob;
+	std::vector<cv::Mat> label_blob;
 
 	int *randbox;
 	int dataidx;

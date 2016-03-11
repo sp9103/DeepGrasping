@@ -30,17 +30,6 @@ bool fileTypeCheck(TCHAR *fileName){
 	return true;
 }
 
-void makeRandbox(int *arr, int size){
-	for (int i = 0; i < size; i++)
-		arr[i] = i;
-	for (int i = 0; i < size; i++){
-		int tidx = rand() % size;
-		int t = arr[i];
-		arr[i] = arr[tidx];
-		arr[tidx] = t;
-	}
-}
-
 namespace caffe {
 
 template <typename Dtype>
@@ -59,12 +48,9 @@ void SPUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& 
   CHECK_GT(batch_size_ * size_, 0) <<
       "batch_size, channels, height, and width must be specified and"
       " positive in memory_data_param";
-  //int tSize = height_ * width_ / 4 / 4;
-  //int tSize = height_ * width_ / 2 / 2;
   labelHeight_ = 80;
   labelWidth_ = 80;
   int tSize = labelHeight_ * labelWidth_;
-  //vector<int> label_shape(1, batch_size_);
   top[0]->Reshape(batch_size_, channels_, height_, width_);
   vector<int> label_shape = top[0]->shape();
   label_shape.resize(1 + 1);
@@ -215,6 +201,18 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 			printf("%s\n", tBuf);
 			UnsupervisedImageloadAll(tBuf, tlabelBuf);
 		}
+	}
+}
+
+template <typename Dtype>
+void SPUnsupervisedDataLayer<Dtype>::makeRandbox(int *arr, int size){
+	for (int i = 0; i < size; i++)
+		arr[i] = i;
+	for (int i = 0; i < size; i++){
+		int tidx = rand() % size;
+		int t = arr[i];
+		arr[i] = arr[tidx];
+		arr[tidx] = t;
 	}
 }
 
