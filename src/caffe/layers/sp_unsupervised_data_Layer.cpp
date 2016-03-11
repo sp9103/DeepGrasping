@@ -12,24 +12,6 @@
 #include <Windows.h>
 #include <time.h>
 
-
-bool fileTypeCheck(TCHAR *fileName){
-	size_t fileLen;
-	StringCchLength(fileName, MAX_PATH, &fileLen);
-
-	if (fileLen < 5)
-		return false;
-
-	if (fileName[fileLen - 1] != 'g' && fileName[fileLen - 1] != 'p')
-		return false;
-	if (fileName[fileLen - 2] != 'p' && fileName[fileLen - 2] != 'm')
-		return false;
-	if (fileName[fileLen - 3] != 'j' && fileName[fileLen - 3] != 'b')
-		return false;
-
-	return true;
-}
-
 namespace caffe {
 
 template <typename Dtype>
@@ -41,7 +23,6 @@ void SPUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& 
 	width_ = this->layer_param_.sp_unsupervised_data_param().width();
 
 	data_path_ = this->layer_param_.sp_unsupervised_data_param().data_path();
-	label_path_ = this->layer_param_.sp_unsupervised_data_param().label_path();
 	data_limit_ = this->layer_param_.sp_unsupervised_data_param().data_limit();
 
   size_ = channels_ * height_ * width_;
@@ -58,7 +39,7 @@ void SPUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& 
   top[1]->Reshape(label_shape);
 
   //전체 로드
-  UnsupervisedImageloadAll(data_path_.c_str(), label_path_.c_str());
+  UnsupervisedImageloadAll(data_path_.c_str());
   CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
   CHECK_GT(data_blob.size(), 0) << "data is empty";
   //CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
@@ -102,11 +83,32 @@ void SPUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
 
 	for (int i = 0; i < batch_size_; i++){
 		//RGB 로드
-		RGBImgData srcImg = this->data_blob.at(randbox[dataidx]);
-		LabelData labelImg = this->label_blob.at(randbox[dataidx]);
+		cv::Mat srcImg = this->data_blob.at(randbox[dataidx]);
+		cv::Mat labelImg = this->label_blob.at(randbox[dataidx]);
 
-		caffe_copy(channels_ * height_ * width_, srcImg.data, data);
-		caffe_copy(labelHeight_ * labelWidth_, labelImg.data, label);
+		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
+		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
+
+		cv::Mat tempData(height_, width_, CV_32FC3);
+		cv::Mat tempLabel(labelHeight_, labelWidth_, CV_32FC1);
+
+		//int idx = 0;
+		//for (int c = 0; c < 3; c++){
+		//	for (int h = 0; h < height_; h++){
+		//		for (int w = 0; w < width_; w++)
+		//			tempData.at<cv::Vec3f>(h, w)[c] = data[idx++];
+		//	}
+		//}
+		//idx = 0;
+		//for (int h = 0; h < labelHeight_; h++){
+		//	for (int w = 0; w < labelWidth_; w++){
+		//		tempLabel.at<float>(h, w) = label[idx++];
+		//	}
+		//}
+
+		//cv::imshow("data", tempData);
+		//cv::imshow("label", tempLabel);
+		//cv::waitKey(0);
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -120,16 +122,13 @@ void SPUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
 }
 
 template <typename Dtype>
-void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapath, const char* labelpath){
+void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapath){
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	TCHAR szDir[MAX_PATH] = { 0, };
-	TCHAR labelDir[MAX_PATH] = {0,};
 
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, datapath, strlen(datapath), szDir, MAX_PATH);
 	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
-	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, labelpath, strlen(labelpath), labelDir, MAX_PATH);
-	StringCchCat(labelDir, MAX_PATH, TEXT("\\*"));
 
 	hFind = FindFirstFile(szDir, &ffd);
 	while (FindNextFile(hFind, &ffd) != 0){
@@ -143,28 +142,28 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 		char tBuf[MAX_PATH];
 		WideCharToMultiByte(CP_ACP, 0, subDir, MAX_PATH, tBuf, MAX_PATH, NULL, NULL);
 
-		TCHAR sublabelDir[MAX_PATH] = { 0, };
-		memcpy(sublabelDir, labelDir, sizeof(TCHAR)*MAX_PATH);
-		StringCchLength(sublabelDir, MAX_PATH, &len);
-		sublabelDir[len - 1] = '\0';
-		StringCchCat(sublabelDir, MAX_PATH, ffd.cFileName);
-		char tlabelBuf[MAX_PATH];
-		WideCharToMultiByte(CP_ACP, 0, sublabelDir, MAX_PATH, tlabelBuf, MAX_PATH, NULL, NULL);
 
-		if (fileTypeCheck(ffd.cFileName)){
+		//Tchar to char
+		char ccFileName[256];
+		WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, len, ccFileName, 256, NULL, NULL);
+
+		if (!strcmp(ccFileName, "DEPTHMAP") || !strcmp(ccFileName, "XYZMAP"))		continue;
+
+		if (fileTypeCheck(ccFileName)){
 			cv::Mat dataimage, labelimage;
+			cv::Mat tempdataMat;
+			cv::Mat templabelMat;
+
+			tempdataMat.create(height_, width_, CV_32FC3);
+			templabelMat.create(labelHeight_, labelWidth_, CV_32FC1);
 
 			dataimage = cv::imread(tBuf);
-			//labelimage = cv::imread(tlabelBuf);
 			if (channels_ == 1){
 				cv::cvtColor(dataimage, dataimage, CV_BGR2GRAY);
 			}
 
-			cv::imshow("ori", dataimage);
-			cv::waitKey(0);
-
-			cv::resize(dataimage, dataimage, cv::Size(height_, width_));
-
+			if (height_ != dataimage.rows || width_ != dataimage.cols)
+				cv::resize(dataimage, dataimage, cv::Size(height_, width_));
 			cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));
 
 			if (labelimage.channels() != 1){
@@ -172,25 +171,22 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 			}
 
 			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
-
-				RGBImgData tempData;
-				LabelData tempLabel;
 				for (int h = 0; h < dataimage.rows; h++){
 					for (int w = 0; w < dataimage.cols; w++){
 						for (int c = 0; c < dataimage.channels(); c++){
-							tempData.data[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b/*uchar*/>(h, w)[c] / 255.0f;
+							tempdataMat.ptr<float>(0)[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
 						}
 					}
 				}
 
 				for (int h = 0; h < labelimage.rows; h++){
 					for (int w = 0; w < labelimage.cols; w++){
-						tempLabel.data[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
+						templabelMat.ptr<float>(0)[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
 					}
 				}
 
-				data_blob.push_back(tempData);
-				label_blob.push_back(tempLabel);
+				data_blob.push_back(tempdataMat);
+				label_blob.push_back(templabelMat);
 			}
 		}
 
@@ -199,7 +195,7 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 
 		if (ffd.dwFileAttributes == 16 && ffd.cFileName[0] != '.'){
 			printf("%s\n", tBuf);
-			UnsupervisedImageloadAll(tBuf, tlabelBuf);
+			UnsupervisedImageloadAll(tBuf);
 		}
 	}
 }
@@ -214,6 +210,23 @@ void SPUnsupervisedDataLayer<Dtype>::makeRandbox(int *arr, int size){
 		arr[i] = arr[tidx];
 		arr[tidx] = t;
 	}
+}
+
+template <typename Dtype>
+bool SPUnsupervisedDataLayer<Dtype>::fileTypeCheck(char *fileName){
+	size_t fileLen = strlen(fileName);;
+
+	if (fileLen < 5)
+		return false;
+
+	if (fileName[fileLen - 1] != 'g' && fileName[fileLen - 1] != 'p')
+		return false;
+	if (fileName[fileLen - 2] != 'p' && fileName[fileLen - 2] != 'm')
+		return false;
+	if (fileName[fileLen - 3] != 'j' && fileName[fileLen - 3] != 'b')
+		return false;
+
+	return true;
 }
 
 INSTANTIATE_CLASS(SPUnsupervisedDataLayer);

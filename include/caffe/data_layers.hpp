@@ -372,8 +372,9 @@ protected:
 	virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top);
 
-	void UnsupervisedImageloadAll(const char* datapath, const char* labelpath);
+	void UnsupervisedImageloadAll(const char* datapath);
 	void makeRandbox(int *arr, int size);
+	bool fileTypeCheck(char *fileName);
 
 	int batch_size_, channels_, height_, width_, size_;
 	int labelHeight_, labelWidth_;
