@@ -48,38 +48,38 @@ void EuclideanLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
   learningCount = (learningCount+1) % 200;*/
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if (std::isnan(loss) || std::isinf(loss)){
-	  printf("loss invalide Error!\n");
+  //if (std::isnan(loss) || std::isinf(loss)){
+	 // printf("loss invalide Error!\n");
 
-	   for (int c = 0; c < bottom[0]->num(); c++){
-	    cudaMemcpy(labelarr, &bottom[1]->gpu_data()[9 * c], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-	    cudaMemcpy(outputarr, &bottom[0]->gpu_data()[9 * c], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-	    cudaMemcpy(diffarr, &diff_.gpu_data()[9 * c], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-	   }
-  }
+	 //  for (int c = 0; c < bottom[0]->num(); c++){
+	 //   cudaMemcpy(labelarr, &bottom[1]->gpu_data()[9 * c], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+	 //   cudaMemcpy(outputarr, &bottom[0]->gpu_data()[9 * c], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+	 //   cudaMemcpy(diffarr, &diff_.gpu_data()[9 * c], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+	 //  }
+  //}
 
-  //if (!std::isnan(loss)){
+  ////if (!std::isnan(loss)){
 
 	 // //////////////////////////////////////////
 	 // cv::Mat lossLayer;
-	 // const int labelwidth = 60;
-	 // const int labelheight = 60;
+	 // const int labelwidth = 80;
+	 // const int labelheight = 80;
 	 // lossLayer.create(labelheight, labelwidth * 3, CV_32FC1);
 
 	 // ////////////label & output 출력
 	 // int cCount = bottom[0]->num() < 10 ? bottom[0]->num() : 10;
 	 // for (int c = 0; c < cCount; c++){
 		//  char buf[32];
-		//  Dtype labelarr[3600], outputarr[3600], diffarr[3600];
-		//  cudaMemcpy(labelarr, &bottom[1]->gpu_data()[3600 * c], sizeof(Dtype) * 3600, cudaMemcpyDeviceToHost);
-		//  cudaMemcpy(outputarr, &bottom[0]->gpu_data()[3600 * c], sizeof(Dtype) * 3600, cudaMemcpyDeviceToHost);
-		//  cudaMemcpy(diffarr, &diff_.gpu_data()[3600 * c], sizeof(Dtype) * 3600, cudaMemcpyDeviceToHost);
+		//  Dtype labelarr[6400], outputarr[6400], diffarr[6400];
+		//  cudaMemcpy(labelarr, &bottom[1]->gpu_data()[6400 * c], sizeof(Dtype) * 6400, cudaMemcpyDeviceToHost);
+		//  cudaMemcpy(outputarr, &bottom[0]->gpu_data()[6400 * c], sizeof(Dtype) * 6400, cudaMemcpyDeviceToHost);
+		//  cudaMemcpy(diffarr, &diff_.gpu_data()[6400 * c], sizeof(Dtype) * 3600, cudaMemcpyDeviceToHost);
 
 		//  for (int j = 0; j < labelheight * labelwidth; j++){
-		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth) = (float)labelarr[j];
-		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth) = (float)outputarr[j];
+		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth) = (float)labelarr[j] * 255.f;
+		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth) = (float)outputarr[j] *255.f;
 		//  }
 
 		//  Dtype max = -9999;
@@ -93,13 +93,14 @@ void EuclideanLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		//  for (int j = 0; j < labelheight * labelwidth; j++)
 		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth * 2) = (float)((diffarr[j] - min) / (max - min));
 
-		//  sprintf(buf, "Loss_%d", c);
+		//  sprintf(buf, "Loss_%d.bmp", c);
 		//  cv::imshow(buf, lossLayer);
+		//  cv::imwrite(buf, lossLayer);
 		//  cv::waitKey(0);
 	 // }
   ////}
   //cv::destroyAllWindows();
-  ////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
 }
 
 //Diff 0번지는 값있고 1번지는 없음

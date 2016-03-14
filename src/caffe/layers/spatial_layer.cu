@@ -252,73 +252,77 @@ void SpatialLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
   //Feature »Ñ¸®±â
   //////if (bottom->size() == 2){
-	 // cv::Mat FeaturePlot;
-	 // const int drawRow = 10;
-	 // const int datatWidth = bottom[1]->shape()[2];
-	 // const int dataHeight = bottom[1]->shape()[3];
-	 // const int dataCount = bottom[1]->shape()[0];
-	 // const int softChannel = bottom[0]->shape()[1];
-	 // const int topCount = top[0]->shape()[1];
-	 // FeaturePlot.create(datatWidth * (dataCount / drawRow + 1), dataHeight * 2 * drawRow, CV_8UC3);
-	 // for (int i = 0; i < dataCount; i++){
-		//  int s_row = i * 2 / (drawRow * 2) * datatWidth;
-		//  int s_col = i * 2 % (drawRow * 2) * datatWidth;
+	  cv::Mat FeaturePlot;
+	  const int drawRow = 10;
+	  const int datatWidth = bottom[1]->shape()[2];
+	  const int dataHeight = bottom[1]->shape()[3];
+	  const int dataCount = bottom[1]->shape()[0];
+	  const int softChannel = bottom[0]->shape()[1];
+	  const int topCount = top[0]->shape()[1];
+	  FeaturePlot.create(datatWidth * (dataCount / drawRow + 1), dataHeight * 2 * drawRow, CV_8UC3);
+	  for (int i = 0; i < dataCount; i++){
+		  int s_row = i * 2 / (drawRow * 2) * datatWidth;
+		  int s_col = i * 2 % (drawRow * 2) * datatWidth;
 
-		//  Dtype pos[128];
-		//  Dtype Map[80 * 80 * 3];
-		//  cv::Point pointList[64];
+		  Dtype pos[128];
+		  Dtype *Map = new Dtype[160*160*3];
+		  cv::Point pointList[64];
 
-		//  cudaMemcpy(pos, &top[0]->gpu_data()[i * topCount], sizeof(Dtype) * topCount, cudaMemcpyDeviceToHost);
-		//  cudaMemcpy(Map, &bottom[1]->gpu_data()[i * 80 * 80 * 3], sizeof(Dtype) * 80 * 80 * 3, cudaMemcpyDeviceToHost);
+		  cudaMemcpy(pos, &top[0]->gpu_data()[i * topCount], sizeof(Dtype) * topCount, cudaMemcpyDeviceToHost);
+		  cudaMemcpy(Map, &bottom[1]->gpu_data()[i * datatWidth * dataHeight * 3], sizeof(Dtype) * datatWidth * dataHeight * 3, cudaMemcpyDeviceToHost);
 
-		//  for (int i = 0; i < topCount / 2; i++)
-		//	  pointList[i] = cv::Point(pos[2 * i] * datatWidth, pos[2 * i + 1] * dataHeight);
+		  for (int i = 0; i < topCount / 2; i++)
+			  pointList[i] = cv::Point(pos[2 * i] * datatWidth, pos[2 * i + 1] * dataHeight);
 
-		//  for (int h = 0; h < dataHeight; h++){
-		//	  for (int w = 0; w < datatWidth; w++){
-		//		  for (int c = 0; c < 3; c++){
-		//			  FeaturePlot.at<cv::Vec3b>(s_row + h, s_col + w)[c] = uchar(Map[c*dataHeight*datatWidth + datatWidth*h + w] * 255.f);
-		//			  FeaturePlot.at<cv::Vec3b>(s_row + h, s_col + w + datatWidth)[c] = uchar(Map[c*dataHeight*datatWidth + datatWidth*h + w] * 255.f);
-		//		  }
-		//	  }
-		//  }
+		  for (int h = 0; h < dataHeight; h++){
+			  for (int w = 0; w < datatWidth; w++){
+				  for (int c = 0; c < 3; c++){
+					  FeaturePlot.at<cv::Vec3b>(s_row + h, s_col + w)[c] = uchar(Map[c*dataHeight*datatWidth + datatWidth*h + w] * 255.f);
+					  FeaturePlot.at<cv::Vec3b>(s_row + h, s_col + w + datatWidth)[c] = uchar(Map[c*dataHeight*datatWidth + datatWidth*h + w] * 255.f);
+				  }
+			  }
+		  }
 
-		//  Dtype softmap[109 * 109];
-		//  Dtype softThreshold = 0.0;
-		//  const int softwidth = softmaxResult_.shape()[2];
-		//  const int softheight = softmaxResult_.shape()[3];
-		//  for (int j = 0; j < topCount/2/2; j++){
-		//	  uchar R = (j * 7)% 255;
-		//	  uchar G = (j * 37) % 255;
-		//	  uchar B = (j * 103) % 255;
+		  Dtype softThreshold = 0.0;
+		  const int softwidth = softmaxResult_.shape()[2];
+		  const int softheight = softmaxResult_.shape()[3];
+		  Dtype *softmap = new Dtype[softwidth * softheight];
+		  for (int j = 0; j < topCount/2/2; j++){
+			  uchar R = (j * 7)% 255;
+			  uchar G = (j * 37) % 255;
+			  uchar B = (j * 103) % 255;
 
-		//	  cudaMemcpy(softmap, &softmaxResult_.gpu_data()[i*softChannel*softwidth*softheight + softwidth * softheight * j], sizeof(Dtype) * softwidth * softheight, cudaMemcpyDeviceToHost);
-		//	  Dtype Max = -99999;
-		//	  for (int s = 0; s < softwidth*softheight; s++)
-		//		  if (Max < softmap[s])
-		//			  Max = softmap[s];
+			  cudaMemcpy(softmap, &softmaxResult_.gpu_data()[i*softChannel*softwidth*softheight + softwidth * softheight * j], sizeof(Dtype) * softwidth * softheight, cudaMemcpyDeviceToHost);
+			  Dtype Max = -99999;
+			  for (int s = 0; s < softwidth*softheight; s++)
+				  if (Max < softmap[s])
+					  Max = softmap[s];
 
-		//	  if (Max > softThreshold)
-		//		  cv::circle(FeaturePlot, cv::Point(s_col + pointList[j].x, s_row + pointList[j].y), 3, cv::Scalar(B, G, R), -1);
-		//  }
-		//  for (int j = topCount/2/2; j < topCount; j++){
-		//	  uchar R = (j * 7) % 255;
-		//	  uchar G = (j * 37) % 255;
-		//	  uchar B = (j * 103) % 255;
+			  if (Max > softThreshold)
+				  cv::circle(FeaturePlot, cv::Point(s_col + pointList[j].x, s_row + pointList[j].y), 3, cv::Scalar(B, G, R), -1);
+		  }
+		  for (int j = topCount/2/2; j < topCount; j++){
+			  uchar R = (j * 7) % 255;
+			  uchar G = (j * 37) % 255;
+			  uchar B = (j * 103) % 255;
 
-		//	  cudaMemcpy(softmap, &softmaxResult_.gpu_data()[i * softChannel * softwidth*softheight + softwidth * softheight * j], sizeof(Dtype) * softwidth * softheight, cudaMemcpyDeviceToHost);
-		//	  Dtype Max = -99999;
-		//	  for (int s = 0; s < softwidth*softheight; s++)
-		//		  if (Max < softmap[s])
-		//			  Max = softmap[s];
+			  cudaMemcpy(softmap, &softmaxResult_.gpu_data()[i * softChannel * softwidth*softheight + softwidth * softheight * j], sizeof(Dtype) * softwidth * softheight, cudaMemcpyDeviceToHost);
+			  Dtype Max = -99999;
+			  for (int s = 0; s < softwidth*softheight; s++)
+				  if (Max < softmap[s])
+					  Max = softmap[s];
 
-		//	  if (Max > softThreshold)
-		//		  cv::circle(FeaturePlot, cv::Point(s_col + datatWidth + pointList[j].x, s_row + pointList[j].y), 3, cv::Scalar(B, G, R), -1);
-		//  }
-	 // }
+			  if (Max > softThreshold)
+				  cv::circle(FeaturePlot, cv::Point(s_col + datatWidth + pointList[j].x, s_row + pointList[j].y), 3, cv::Scalar(B, G, R), -1);
+		  }
 
-	 // cv::imshow("Map", FeaturePlot);
-	 // cv::waitKey(0);
+		  delete[] softmap;
+		  delete[] Map;
+	  }
+
+	  cv::imwrite("FeaturePlot.bmp", FeaturePlot);
+	  cv::imshow("Map", FeaturePlot);
+	  cv::waitKey(0);
   //////////}
 }
 

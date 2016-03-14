@@ -41,11 +41,11 @@ void UVDXYZDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   vector<int> top_shape;
   top_shape.resize(1 + 1);
   top_shape[0] = batch_size_;
-  top_shape[1] = 3;
+  top_shape[1] = 192;
 
   top[0]->Reshape(top_shape);
 
-  top_shape[1] = 3;								//label shape
+  top_shape[1] = 192;								//label shape
   top[1]->Reshape(top_shape);
 
   //top[0]->Reshape(batch_size_, 1, 1, 3);
@@ -93,38 +93,36 @@ void UVDXYZDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	Dtype* xyz = top[1]->mutable_cpu_data();
 
 	for (int i = 0; i < batch_size_; i++){
-		cv::Point3f data = this->data.at(randbox[dataidx]);
-		cv::Point3f label = this->label.at(randbox[dataidx]);
+		for (int j = 0; j < 64; j++){
+			cv::Point3f data = this->data.at(randbox[dataidx]);
+			cv::Point3f label = this->label.at(randbox[dataidx]);
 
-		/*caffe_copy(3 * height_ * width_, srcImg.data, rgb);
-		caffe_copy(1 * height_ * width_, depthImg.data, depth);
-		caffe_copy(3*3, labelpos.pos, label);*/
+			if (data.z <= 0 || label.z <= 0){
+				printf("Data input error\n");
+				continue;
+			}
 
-		if (data.z <= 0 || label.z <= 0){
-			printf("Data input error\n");
-			continue;
+			data.x /= 160;
+			data.y /= 160;
+			data.z /= 1000.f;
+			uvd[3 * j + 0] = (Dtype)data.x;
+			uvd[3 * j + 1] = (Dtype)data.y;
+			uvd[3 * j + 2] = (Dtype)data.z;
+
+			xyz[3 * j + 0] = (Dtype)label.x;
+			xyz[3 * j + 1] = (Dtype)label.y;
+			xyz[3 * j + 2] = (Dtype)label.z;
+
+			if (dataidx + 1 >= this->data.size()){
+				UVDXYZmakeRandbox(randbox, this->data.size());
+				dataidx = 0;
+			}
+			else
+				dataidx++;
 		}
-
-		data.x /= 512;
-		data.y /= 424;
-		data.z /= 1000.f;
-		uvd[0] = (Dtype)data.x;
-		uvd[1] = (Dtype)data.y;
-		uvd[2] = (Dtype)data.z;
-
-		xyz[0] = (Dtype)label.x;
-		xyz[1] = (Dtype)label.y;
-		xyz[2] = (Dtype)label.z;
 
 		uvd += top[0]->offset(1);
 		xyz += top[1]->offset(1);
-
-		if (dataidx + 1 >= this->data.size()){
-			UVDXYZmakeRandbox(randbox, this->data.size());
-			dataidx = 0;
-		}
-		else
-			dataidx++;
 	}
 }
 
@@ -148,26 +146,6 @@ void UVDXYZDataLayer<Dtype>::readData(const char *path){
 	while (!feof(Datafp)){
 		fread(&uvd, sizeof(cv::Point3f), 1, Datafp);
 		fread(&xyz, sizeof(cv::Point3f), 1, Datafp);
-		
-		if (xMax < uvd.x)		xMax = uvd.x;
-		if (yMax < uvd.y)		yMax = uvd.y;
-		if (zMax < uvd.z)		zMax = uvd.z;
-
-		if (xMin > uvd.x)		xMin = uvd.x;
-		if (yMin > uvd.y)		yMin = uvd.y;
-		if (zMin > uvd.z)		zMin = uvd.z;
-
-		//전체 해상도에 1/2만 관심을가지고 문제를 풀어냄
-		//if (uvd.x < 480 || uvd.x >1440) continue;
-		//if (uvd.y < 270 || uvd.y >810) continue;
-
-		/*fread(&uvd.x, sizeof(float), 1, Datafp);
-		fread(&uvd.y, sizeof(float), 1, Datafp);
-		fread(&uvd.z, sizeof(float), 1, Datafp);
-
-		fread(&xyz.x, sizeof(float), 1, Datafp);
-		fread(&xyz.y, sizeof(float), 1, Datafp);
-		fread(&xyz.z, sizeof(float), 1, Datafp);*/
 
 		data.push_back(uvd);
 		label.push_back(xyz);

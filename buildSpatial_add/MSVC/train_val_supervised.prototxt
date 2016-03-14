@@ -183,7 +183,7 @@ layer {
   bottom: "rgb"
   top: "spatial1"
   spatial_param{
-	alpha: 4
+	alpha: 0
   }
 }
 layer {
