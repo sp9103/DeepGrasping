@@ -39,6 +39,7 @@ void SPUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& 
   top[1]->Reshape(label_shape);
 
   //전체 로드
+  background = cv::imread("D:\\RGBDData\\background\\RGB\\0_1.bmp");
   UnsupervisedImageloadAll(data_path_.c_str());
   CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
   CHECK_GT(data_blob.size(), 0) << "data is empty";
@@ -92,23 +93,23 @@ void SPUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
 		cv::Mat tempData(height_, width_, CV_32FC3);
 		cv::Mat tempLabel(labelHeight_, labelWidth_, CV_32FC1);
 
-		//int idx = 0;
-		//for (int c = 0; c < 3; c++){
-		//	for (int h = 0; h < height_; h++){
-		//		for (int w = 0; w < width_; w++)
-		//			tempData.at<cv::Vec3f>(h, w)[c] = data[idx++];
-		//	}
-		//}
-		//idx = 0;
-		//for (int h = 0; h < labelHeight_; h++){
-		//	for (int w = 0; w < labelWidth_; w++){
-		//		tempLabel.at<float>(h, w) = label[idx++];
-		//	}
-		//}
+		int idx = 0;
+		for (int c = 0; c < 3; c++){
+			for (int h = 0; h < height_; h++){
+				for (int w = 0; w < width_; w++)
+					tempData.at<cv::Vec3f>(h, w)[c] = data[idx++];
+			}
+		}
+		idx = 0;
+		for (int h = 0; h < labelHeight_; h++){
+			for (int w = 0; w < labelWidth_; w++){
+				tempLabel.at<float>(h, w) = label[idx++];
+			}
+		}
 
-		//cv::imshow("data", tempData);
-		//cv::imshow("label", tempLabel);
-		//cv::waitKey(0);
+		cv::imshow("data", tempData);
+		cv::imshow("label", tempLabel);
+		cv::waitKey(0);
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -126,6 +127,7 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	TCHAR szDir[MAX_PATH] = { 0, };
+	const int backThreshold = 60;
 
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, datapath, strlen(datapath), szDir, MAX_PATH);
 	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
@@ -149,13 +151,14 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 
 		if (!strcmp(ccFileName, "DEPTHMAP") || !strcmp(ccFileName, "XYZMAP"))		continue;
 
-		if (fileTypeCheck(ccFileName)){
+		if (this->fileTypeCheck(ccFileName)){
 			cv::Mat dataimage, labelimage;
 			cv::Mat tempdataMat;
 			cv::Mat templabelMat;
 
 			tempdataMat.create(height_, width_, CV_32FC3);
 			templabelMat.create(labelHeight_, labelWidth_, CV_32FC1);
+
 
 			dataimage = cv::imread(tBuf);
 			if (channels_ == 1){
@@ -164,11 +167,32 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 
 			if (height_ != dataimage.rows || width_ != dataimage.cols)
 				cv::resize(dataimage, dataimage, cv::Size(height_, width_));
-			cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));
+			/*cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));*/
+			labelimage = dataimage.clone();
 
+			/////////////////////////////////////////////////////배경제거//////////////////////////////////////////
+			for (int h = 0; h < labelimage.rows; h++){
+				for (int w = 0; w < labelimage.cols; w++){
+					cv::Vec3b back = background.at<cv::Vec3b>(h, w);
+					cv::Vec3b data = labelimage.at<cv::Vec3b>(h, w);
+					
+					for (int c = 0; c < 3; c++)		back[c] = abs(back[c] - data[c]);
+
+					if (back[0] < backThreshold & back[1] < backThreshold && back[2] < backThreshold){
+						data[0] = data[1] = data[2] = 0;
+						labelimage.at<cv::Vec3b>(h,w) = data;
+					}
+				}
+			}
+			///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			cv::resize(labelimage, labelimage, cv::Size(labelHeight_, labelWidth_));
 			if (labelimage.channels() != 1){
 				cv::cvtColor(labelimage, labelimage, CV_BGR2GRAY);
 			}
+
+			cv::imshow("sub", labelimage);
+			cv::waitKey(0);
 
 			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
 				for (int h = 0; h < dataimage.rows; h++){

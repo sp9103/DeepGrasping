@@ -58,18 +58,16 @@ void EuclideanDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   //memcpy(temp, output, sizeof(Dtype) * 30);
 
   for (int i = 0; i < batchsize; i++){
-	  for (int j = 0; j < botLen / 3; j++){
-		  float sq = 0;
-		  for (int k = 0; k < 3; k++){
-			  sq += diffdata[botLen*i + j * 3 + k] * diffdata[botLen*i + j * 3 + k];
-		  }
-		  Dtype tempDist = sqrt(sq);
-		  dist += tempDist / batchsize;
-
-		  //int step = diff_.offset(1);
-		  //diffdata += step;
-		  //bot += step;
+	  float sq = 0;
+	  for (int k = 0; k < 3; k++){
+		  sq += diffdata[botLen*i + k] * diffdata[botLen*i + k];
 	  }
+	  Dtype tempDist = sqrt(sq);
+	  dist += tempDist / batchsize;
+
+	  //int step = diff_.offset(1);
+	  //diffdata += step;
+	  //bot += step;
   }
 
    top[0]->mutable_cpu_data()[0] = dist;

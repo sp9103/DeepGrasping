@@ -1,4 +1,5 @@
-net: "UVD_XYZ_net/train_val_uvd_xyz_bn.prototxt"
+#net: "UVD_XYZ_net/train_val_uvd_xyz_bn.prototxt"
+net: "UVD_XYZ_net/train_val_uvd_xyz_bn_3_3.prototxt"
 
 test_iter: 10
 test_interval: 100
@@ -19,5 +20,5 @@ momentum: 0.9
 #momentum: 0.0
 weight_decay: 0.0005
 snapshot: 1000
-snapshot_prefix: "UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz"
+snapshot_prefix: "UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_3_3"
 solver_mode: GPU

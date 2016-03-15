@@ -390,6 +390,8 @@ protected:
 
 	int *randbox;
 	int dataidx;
+
+	cv::Mat background;
 };
 
 /**

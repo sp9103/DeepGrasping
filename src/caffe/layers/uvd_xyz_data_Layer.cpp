@@ -41,11 +41,11 @@ void UVDXYZDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   vector<int> top_shape;
   top_shape.resize(1 + 1);
   top_shape[0] = batch_size_;
-  top_shape[1] = 192;
+  top_shape[1] = 3;
 
   top[0]->Reshape(top_shape);
 
-  top_shape[1] = 192;								//label shape
+  top_shape[1] = 3;								//label shape
   top[1]->Reshape(top_shape);
 
   //top[0]->Reshape(batch_size_, 1, 1, 3);
@@ -93,33 +93,31 @@ void UVDXYZDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	Dtype* xyz = top[1]->mutable_cpu_data();
 
 	for (int i = 0; i < batch_size_; i++){
-		for (int j = 0; j < 64; j++){
-			cv::Point3f data = this->data.at(randbox[dataidx]);
-			cv::Point3f label = this->label.at(randbox[dataidx]);
+		cv::Point3f data = this->data.at(randbox[dataidx]);
+		cv::Point3f label = this->label.at(randbox[dataidx]);
 
-			if (data.z <= 0 || label.z <= 0){
-				printf("Data input error\n");
-				continue;
-			}
-
-			data.x /= 160;
-			data.y /= 160;
-			data.z /= 1000.f;
-			uvd[3 * j + 0] = (Dtype)data.x;
-			uvd[3 * j + 1] = (Dtype)data.y;
-			uvd[3 * j + 2] = (Dtype)data.z;
-
-			xyz[3 * j + 0] = (Dtype)label.x;
-			xyz[3 * j + 1] = (Dtype)label.y;
-			xyz[3 * j + 2] = (Dtype)label.z;
-
-			if (dataidx + 1 >= this->data.size()){
-				UVDXYZmakeRandbox(randbox, this->data.size());
-				dataidx = 0;
-			}
-			else
-				dataidx++;
+		if (data.z <= 0 || label.z <= 0){
+			printf("Data input error\n");
+			continue;
 		}
+
+		data.x /= 160;
+		data.y /= 160;
+		data.z /= 1000.f;
+		uvd[0] = (Dtype)data.x;
+		uvd[1] = (Dtype)data.y;
+		uvd[2] = (Dtype)data.z;
+
+		xyz[0] = (Dtype)label.x;
+		xyz[1] = (Dtype)label.y;
+		xyz[2] = (Dtype)label.z;
+
+		if (dataidx + 1 >= this->data.size()){
+			UVDXYZmakeRandbox(randbox, this->data.size());
+			dataidx = 0;
+		}
+		else
+			dataidx++;
 
 		uvd += top[0]->offset(1);
 		xyz += top[1]->offset(1);
