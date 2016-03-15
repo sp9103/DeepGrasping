@@ -64,7 +64,7 @@ void EuclideanDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 			  sq += diffdata[botLen*i + j * 3 + k] * diffdata[botLen*i + j * 3 + k];
 		  }
 		  Dtype tempDist = sqrt(sq);
-		  dist += tempDist / batchsize;
+		  dist += tempDist / batchsize / (botLen / 3);
 
 		  //int step = diff_.offset(1);
 		  //diffdata += step;
