@@ -131,6 +131,52 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
+    num_output: 1000
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "uvd_xyz_bn3"
+  type: "BatchNorm"
+  bottom: "uvd_xyz_fc3"
+  top: "uvd_xyz_fc3"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+layer {
+  name: "uvd_xyz_relu3"
+  type: "ReLU"
+  bottom: "uvd_xyz_fc3"
+  top: "uvd_xyz_fc3"
+}
+layer {
+  name: "uvd_xyz_fc4"
+  type: "InnerProduct"
+  bottom: "uvd_xyz_fc3"
+  top: "uvd_xyz_fc4"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
     num_output: 192
     weight_filler {
       type: "gaussian"
@@ -145,7 +191,7 @@ layer {
 layer {
   name: "distance"
   type: "EuclideanDist"
-  bottom: "uvd_xyz_fc3"
+  bottom: "uvd_xyz_fc4"
   bottom: "label"
   top: "accuracy"
   include {
@@ -155,7 +201,7 @@ layer {
 layer {
   name: "loss"
   type: "EuclideanLoss"
-  bottom: "uvd_xyz_fc3"
+  bottom: "uvd_xyz_fc4"
   bottom: "label"
   top: "l2_error"
 }
