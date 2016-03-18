@@ -915,8 +915,6 @@ protected:
 
 	int Mode_;									//1 : fold , 2 : unfold
 	int Size_;
-	int M_;
-	int K_;
 	int N_;
 };
 
