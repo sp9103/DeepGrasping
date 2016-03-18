@@ -399,6 +399,7 @@ message LayerParameter {
   optional MNISTDataParameter	mnist_data_param = 149;
   optional SPsupervisedDataParameter sp_supervised_data_param = 150;
   optional DepthConcatParameter depth_concat_param = 151;
+  optional CrumpleParameter crumple_param = 152;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1359,4 +1360,11 @@ message DepthConcatParameter {
   optional string background_path = 1;
 
   optional uint32 alpha = 2 [default = 3];
+}
+
+// Message custom_data_layer parameter
+message CrumpleParameter {
+  // Specify the data source.
+  optional uint32 mode = 1;
+  optional uint32 size = 2;
 }
