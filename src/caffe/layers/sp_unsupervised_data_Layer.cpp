@@ -191,8 +191,8 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 				cv::cvtColor(labelimage, labelimage, CV_BGR2GRAY);
 			}
 
-			cv::imshow("sub", labelimage);
-			cv::waitKey(0);
+			/*cv::imshow("sub", labelimage);
+			cv::waitKey(0);*/
 
 			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
 				for (int h = 0; h < dataimage.rows; h++){

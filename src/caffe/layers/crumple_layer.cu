@@ -14,13 +14,24 @@ namespace caffe {
 template <typename Dtype>
 void CrumpleLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
-  
+	if (Mode_ == 1){
+
+	}
+	else if (Mode_ == 2){
+
+	}
 }
 
 template <typename Dtype>
 void CrumpleLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down,
     const vector<Blob<Dtype>*>& bottom) {
+	if (Mode_ == 1){
+
+	}
+	else if (Mode_ == 2){
+
+	}
 }
 
 INSTANTIATE_LAYER_GPU_FUNCS(CrumpleLayer);
