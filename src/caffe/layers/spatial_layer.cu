@@ -92,9 +92,9 @@ __global__ void SpatialForward(const int nthreads,
 			for (int w = 0; w < width; w++){
 				const int element_idx = h * width + w;						//°ö¼ÀÀ» ÇØ¾ßÇÒ element
 				if (index % 2 == 0)										//Â¦¼öÀÏ¶§´Â xÁÂÇ¥ °ü·ÃµÈ ÀÛ¾÷
-					tValue += w * bottom_data[(index / 2)*width*height + h * height + w] / (Dtype)width;
+					tValue += w * bottom_data[(index / 2)*width*height + element_idx] / (Dtype)width;
 				else														//È¦¼öÀÏ¶§´Â yÁÂÇ¥ °ü·ÃµÈ ÀÛ¾÷
-					tValue += h * bottom_data[(index / 2)*width*height + h * height + w] / (Dtype)height;
+					tValue += h * bottom_data[(index / 2)*width*height + element_idx] / (Dtype)height;
 			}
 		}
 
