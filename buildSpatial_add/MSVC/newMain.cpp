@@ -418,7 +418,7 @@ int main(int argc, char** argv) {
 
 	////////////////////////////uvd_xyz net learning/////////////////////////////////////////////////////////
 	int targc = 3;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt","--gpu=all" };
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt", "--snapshot=UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_affter_iter_50000.solverstate", "--gpu=all" };
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	char **argvp;
