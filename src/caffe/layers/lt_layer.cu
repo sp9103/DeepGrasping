@@ -37,7 +37,11 @@ template <typename Dtype>
 void LTLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down,
     const vector<Blob<Dtype>*>& bottom) {
-
+	const Dtype* top_diff = top[0]->gpu_diff();
+	// Gradient with respect to bottom data
+	caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, K_, N_, (Dtype)1.,
+		top_diff, this->blobs_[0]->gpu_data(), (Dtype)0.,
+		bottom[0]->mutable_gpu_diff());
 }
 
 INSTANTIATE_LAYER_GPU_FUNCS(LTLayer);
