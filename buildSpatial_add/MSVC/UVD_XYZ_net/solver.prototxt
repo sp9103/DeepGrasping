@@ -1,11 +1,13 @@
 #net: "UVD_XYZ_net/train_val_uvd_xyz_bn.prototxt"
-net: "UVD_XYZ_net/train_val_uvd_xyz_bn_3_3.prototxt"
+#net: "UVD_XYZ_net/train_val_uvd_xyz_bn_500_500_500.prototxt"
+#net: "UVD_XYZ_net/train_val_uvd_xyz_bn_3_3.prototxt"
+net: "UVD_XYZ_net/train_val_uvd_xyz_bn_robot.prototxt"
 
-test_iter: 10
-test_interval: 100
+test_iter: 5
+test_interval: 1000
 test_initialization: true
 
-base_lr: 0.1
+base_lr: 0.01
 #lr_policy: "step"
 #gamma: 1
 #stepsize: 300000
@@ -14,11 +16,13 @@ lr_policy: "inv"
 gamma: 0.0001
 power: 0.75
 
-display: 10
+display: 1000
 max_iter: 600000
 momentum: 0.9
 #momentum: 0.0
 weight_decay: 0.0005
-snapshot: 1000
-snapshot_prefix: "UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_3_3"
+snapshot: 10000
+#snapshot_prefix: "UVD_XYZ_net/snapshot_uvd_xyz_500_500_500/uvd_xyz"
+#snapshot_prefix: "UVD_XYZ_net/snapshot_uvd_xyz_2000_2000/uvd_xyz_affter"
+snapshot_prefix: "UVD_XYZ_net/uvd_xyz_robot_data/uvd_xyz_robot"
 solver_mode: GPU

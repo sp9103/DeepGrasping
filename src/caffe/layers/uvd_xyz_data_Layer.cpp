@@ -96,7 +96,7 @@ void UVDXYZDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		cv::Point3f data = this->data.at(randbox[dataidx]);
 		cv::Point3f label = this->label.at(randbox[dataidx]);
 
-		if (data.z <= 0 || label.z <= 0){
+		if (data.z <= 0){
 			printf("Data input error\n");
 			continue;
 		}
@@ -144,6 +144,17 @@ void UVDXYZDataLayer<Dtype>::readData(const char *path){
 	while (!feof(Datafp)){
 		fread(&uvd, sizeof(cv::Point3f), 1, Datafp);
 		fread(&xyz, sizeof(cv::Point3f), 1, Datafp);
+
+		//////////////robot_xyz//////////////////////////
+		uvd.x -= 176;
+		uvd.y -= 132;
+
+		xyz.x /= 1000.f;
+		xyz.y /= 1000.f;
+		xyz.z /= 1000.f;
+
+		if (uvd.x < 0 || uvd.y < 0 || uvd.x > 160 || uvd.y > 160)
+			continue;
 
 		data.push_back(uvd);
 		label.push_back(xyz);
