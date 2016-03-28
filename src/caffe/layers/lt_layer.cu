@@ -12,17 +12,34 @@
 namespace caffe {
 
 template <typename Dtype>
-void CrumpleLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+void LTLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
+	const Dtype* bottom_data = bottom[0]->gpu_data();
+	Dtype* top_data = top[0]->mutable_gpu_data();
+	const Dtype* RMat = R.gpu_data();
+	const Dtype* TMat = T.gpu_data();
+	if (M_ == 1) {
+		caffe_gpu_gemv<Dtype>(CblasNoTrans, N_, K_, (Dtype)1.,
+			RMat, bottom_data, (Dtype)0., top_data);
+		caffe_gpu_axpy<Dtype>(N_, bias_multiplier_.cpu_data()[0],
+			TMat, top_data);
+	}
+	else {
+		caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasTrans, M_, N_, K_, (Dtype)1.,
+			bottom_data, RMat, (Dtype)0., top_data);
+		caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, N_, 1, (Dtype)1.,
+			bias_multiplier_.gpu_data(),
+			TMat, (Dtype)1., top_data);
+	}
 }
 
 template <typename Dtype>
-void CrumpleLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+void LTLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down,
     const vector<Blob<Dtype>*>& bottom) {
 
 }
 
-INSTANTIATE_LAYER_GPU_FUNCS(CrumpleLayer);
+INSTANTIATE_LAYER_GPU_FUNCS(LTLayer);
 
 }  // namespace caffe

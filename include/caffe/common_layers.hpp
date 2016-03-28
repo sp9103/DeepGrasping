@@ -931,7 +931,7 @@ public:
 		const vector<Blob<Dtype>*>& top);
 
 	virtual inline const char* type() const { return "LT"; }
-	//virtual inline int ExactNumBottomBlobs() const { return 1; }
+	virtual inline int ExactNumBottomBlobs() const { return 1; }
 	virtual inline int ExactNumTopBlobs() const { return 1; }
 
 protected:
@@ -944,7 +944,13 @@ protected:
 	virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
 		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
-	Blob<Dtype> RT;
+	int M_;
+	int K_;
+	int N_;
+
+	Blob<Dtype> R;
+	Blob<Dtype> T;
+	Blob<Dtype> bias_multiplier_;
 };
 
 }  // namespace caffe
