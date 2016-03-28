@@ -255,6 +255,7 @@
     <ClCompile Include="..\..\src\caffe\layers\log_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\loss_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\lrn_layer.cpp" />
+    <ClCompile Include="..\..\src\caffe\layers\lt_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\memory_data_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\mnist_data_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\multinomial_logistic_loss_layer.cpp" />
@@ -390,6 +391,7 @@
     <CudaCompile Include="..\..\src\caffe\layers\local_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\log_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\lrn_layer.cu" />
+    <CudaCompile Include="..\..\src\caffe\layers\lt_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\mvn_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\normalize_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\pooling_layer.cu" />
