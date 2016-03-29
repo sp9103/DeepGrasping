@@ -1,0 +1,51 @@
+name: "uvd_xyz_net"
+layer {
+  name: "data"
+  type: "UVDXYZData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  sp_unsupervised_data_param {
+    batch_size: 1
+    data_path : "./UVD_XYZ_net/camera_xyz_robot_xyz/CameraXYZ_RobotXYZ_train.bin"
+  }
+}
+layer {
+  name: "data"
+  type: "UVDXYZData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  sp_unsupervised_data_param {
+   batch_size: 246
+   data_path : "./UVD_XYZ_net/camera_xyz_robot_xyz/CameraXYZ_RobotXYZ_train.bin"
+  }
+}
+layer {
+  name: "LT1"
+  type: "LT"
+  bottom: "data"
+  top: "LT1"
+}
+layer {
+  name: "distance"
+  type: "EuclideanDist"
+  bottom: "LT1"
+  bottom: "label"
+  bottom: "data"
+  top: "accuracy"
+  include {
+    phase: TEST
+  }
+}
+layer {
+  name: "loss"
+  type: "EuclideanLoss"
+  bottom: "LT1"
+  bottom: "label"
+  top: "l2_error"
+}

@@ -1,5 +1,5 @@
 #net: "UVD_XYZ_net/train_val_uvd_xyz_bn.prototxt"
-net: "UVD_XYZ_net/train_val_uvd_xyz_bn_3_3.prototxt"
+net: "UVD_XYZ_net/train_val_xyz_xyz.prototxt"
 
 test_iter: 10
 test_interval: 100

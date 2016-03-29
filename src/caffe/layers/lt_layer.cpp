@@ -13,7 +13,7 @@ template <typename Dtype>
 void LTLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	const int cols = bottom[0]->shape()[1];
-	CHECK_EQ(cols, 0)
+	CHECK_EQ(cols, 3)
 		<< "bottom input & top output must 3";
 
 	vector<int> top_shape = bottom[0]->shape();
@@ -23,7 +23,7 @@ void LTLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	K_ = 3;
 	M_ = bottom[0]->count(0, 1);
 
-	//Linear transform matrix allocation & data set
+	//Linear transform matrix allocation
 	vector<int> weight_shape(2);
 	weight_shape[0] = N_;
 	weight_shape[1] = K_;
@@ -33,7 +33,16 @@ void LTLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 	vector<int> bias_mul_shape(1, M_);
 	bias_multiplier_.Reshape(bias_shape);
-	caffe_set(3, Dtype(1), bias_multiplier_.mutable_cpu_data());
+	caffe_set(M_, Dtype(1), bias_multiplier_.mutable_cpu_data());
+
+	//Matrix setting
+	Dtype RMat[9] = { -20.683149, 957.240906, 290.486237,
+					963.990662, -9.238551, 198.420578,
+					201.575638, 238.804276, -907.819397 }; 
+	Dtype TMat[3] = { 54.133713, -222.452713, 879.145020 };
+
+	caffe_copy(9, RMat, R.mutable_cpu_data());
+	caffe_copy(3, TMat, T.mutable_cpu_data());
 }
 
 template <typename Dtype>

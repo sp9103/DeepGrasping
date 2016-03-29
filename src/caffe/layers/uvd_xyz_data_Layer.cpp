@@ -96,14 +96,14 @@ void UVDXYZDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		cv::Point3f data = this->data.at(randbox[dataidx]);
 		cv::Point3f label = this->label.at(randbox[dataidx]);
 
-		if (data.z <= 0 || label.z <= 0){
+		/*if (data.z <= 0 || label.z <= 0){
 			printf("Data input error\n");
 			continue;
-		}
+		}*/
 
-		data.x /= 160;
+		/*data.x /= 160;
 		data.y /= 160;
-		data.z /= 1000.f;
+		data.z /= 1000.f;*/
 		uvd[0] = (Dtype)data.x;
 		uvd[1] = (Dtype)data.y;
 		uvd[2] = (Dtype)data.z;

@@ -53,6 +53,7 @@ void EuclideanDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype* diffdata = diff_.cpu_data();
   const Dtype* bot = bottom[1]->cpu_data();
   const Dtype* output = bottom[0]->cpu_data();
+  const Dtype* input = bottom[2]->cpu_data();
 
   //Dtype temp[30];
   //memcpy(temp, output, sizeof(Dtype) * 30);

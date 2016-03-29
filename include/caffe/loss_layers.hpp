@@ -791,7 +791,7 @@ public:
 		const vector<Blob<Dtype>*>& top);
 
 	virtual inline const char* type() const { return "EuclideanDist"; }
-	virtual inline int ExactNumBottomBlobs() const { return 2; }
+	//virtual inline int ExactNumBottomBlobs() const { return 2; }
 
 	// If there are two top blobs, then the second blob will contain
 	// accuracies per class.
