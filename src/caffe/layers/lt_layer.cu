@@ -28,6 +28,23 @@ __global__ void kernel_linear_transform(const int num, const int count,
 }
 
 template <typename Dtype>
+__global__ void kernel_linear_backward(const int num, const int count,
+	const int batchsize, const Dtype* rot,
+	const Dtype* data, Dtype* out) {
+	CUDA_KERNEL_LOOP(index, num) {
+		int id = index % count;
+		int batchid = index / count;
+
+		if (id == 0)
+			out[index] = data[batchid * 3 + 0] * rot[0] + data[batchid * 3 + 1] * rot[3] + data[batchid * 3 + 2] * rot[6];
+		else if (id == 1)
+			out[index] = data[batchid * 3 + 0] * rot[1] + data[batchid * 3 + 1] * rot[4] + data[batchid * 3 + 2] * rot[7];
+		else if (id == 2)
+			out[index] = data[batchid * 3 + 0] * rot[2] + data[batchid * 3 + 1] * rot[5] + data[batchid * 3 + 2] * rot[8];
+	}
+}
+
+template <typename Dtype>
 void LTLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->gpu_data();
@@ -46,10 +63,16 @@ void LTLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down,
     const vector<Blob<Dtype>*>& bottom) {
 	const Dtype* top_diff = top[0]->gpu_diff();
+	const Dtype* RMat = R.gpu_data();
+	const int bottom_count = bottom[0]->count();
 	// Gradient with respect to bottom data
-	caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, K_, N_, (Dtype)1.,
+	/*caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, K_, N_, (Dtype)1.,
 		top_diff, this->blobs_[0]->gpu_data(), (Dtype)0.,
-		bottom[0]->mutable_gpu_diff());
+		bottom[0]->mutable_gpu_diff());*/
+
+	kernel_linear_backward<Dtype> << <CAFFE_GET_BLOCKS(bottom_count),
+		CAFFE_CUDA_NUM_THREADS >> >(bottom_count, N_, M_,
+		RMat, top_diff, bottom[0]->mutable_gpu_diff());
 }
 
 INSTANTIATE_LAYER_GPU_FUNCS(LTLayer);
