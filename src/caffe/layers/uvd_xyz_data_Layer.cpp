@@ -140,7 +140,7 @@ void UVDXYZDataLayer<Dtype>::readData(const char *path){
 
 	while (!feof(Datafp)){
 		fread(&uvd, sizeof(cv::Point3f), 1, Datafp);
-		//fread(&cam, sizeof(cv::Point3f), 1, Datafp);
+		fread(&cam, sizeof(cv::Point3f), 1, Datafp);
 		fread(&xyz, sizeof(cv::Point3f), 1, Datafp);
 
 		data.push_back(uvd);
