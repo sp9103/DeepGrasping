@@ -419,8 +419,8 @@ int main(int argc, char** argv) {
 	////////////////////////////uvd_xyz net learning/////////////////////////////////////////////////////////
 	int targc = 4;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt", "--gpu=all" };
-	//int targc = 5;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt", "--weights=UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_iter_11000.caffemodel", "--gpu=all" };
+	/*int targc = 5;
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt", "--weights=UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_3_3_iter_100000.caffemodel", "--gpu=all" };*/
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	char **argvp;

@@ -8,7 +8,7 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 1
+    batch_size: 246
     data_path : "./UVD_XYZ_net/camera_xyz_robot_xyz/CameraXYZ_RobotXYZ_train.bin"
   }
 }
@@ -21,20 +21,45 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-   batch_size: 246
-   data_path : "./UVD_XYZ_net/camera_xyz_robot_xyz/CameraXYZ_RobotXYZ_train.bin"
+   batch_size: 34
+   data_path : "./UVD_XYZ_net/camera_xyz_robot_xyz/CameraXYZ_RobotXYZ_test.bin"
   }
 }
+#layer {
+#  name: "LT1"
+#  type: "LT"
+#  bottom: "data"
+#  top: "LT1"
+#}
 layer {
-  name: "LT1"
-  type: "LT"
+  name: "xyz_xyz_robot"
+  type: "InnerProduct"
   bottom: "data"
-  top: "LT1"
+  top: "xyz_robot"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
 }
 layer {
   name: "distance"
   type: "EuclideanDist"
-  bottom: "LT1"
+  bottom: "xyz_robot"
   bottom: "label"
   bottom: "data"
   top: "accuracy"
@@ -45,7 +70,7 @@ layer {
 layer {
   name: "loss"
   type: "EuclideanLoss"
-  bottom: "LT1"
+  bottom: "xyz_robot"
   bottom: "label"
   top: "l2_error"
 }
