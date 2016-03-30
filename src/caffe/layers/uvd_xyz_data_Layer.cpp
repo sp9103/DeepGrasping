@@ -104,9 +104,12 @@ void UVDXYZDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		/*uvd[0] = (Dtype)(data.x - 176) / 160.f;
 		uvd[1] = (Dtype)(data.y - 132) / 160.f;
 		uvd[2] = (Dtype)data.z / 1000.f;*/
-		uvd[0] = (Dtype)data.x;
+		/*uvd[0] = (Dtype)data.x;
 		uvd[1] = (Dtype)data.y;
-		uvd[2] = (Dtype)data.z;
+		uvd[2] = (Dtype)data.z;*/
+		uvd[0] = (Dtype)data.x / 160.f;
+		uvd[1] = (Dtype)data.y / 160.f;
+		uvd[2] = (Dtype)data.z / 1000.f;
 
 		xyz[0] = (Dtype)label.x;
 		xyz[1] = (Dtype)label.y;
@@ -133,10 +136,11 @@ void UVDXYZDataLayer<Dtype>::readData(const char *path){
 	}
 
 	//Read File
-	cv::Point3f uvd, xyz;
+	cv::Point3f uvd, cam, xyz;
 
 	while (!feof(Datafp)){
 		fread(&uvd, sizeof(cv::Point3f), 1, Datafp);
+		//fread(&cam, sizeof(cv::Point3f), 1, Datafp);
 		fread(&xyz, sizeof(cv::Point3f), 1, Datafp);
 
 		data.push_back(uvd);
