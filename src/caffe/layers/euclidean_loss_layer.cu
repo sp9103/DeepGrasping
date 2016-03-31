@@ -23,32 +23,26 @@ void EuclideanLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   Dtype loss = dot / bottom[0]->num() / Dtype(2);
   top[0]->mutable_cpu_data()[0] = loss;
 
-  /////////////////////////////////////////각 손가락 당 euclidean distance////////////////////////////////////////
-  static int learningCount = 0;
-  static Dtype UpperLeft = 0;
-  static Dtype UpperRight = 0;
-  static Dtype Thumb = 0;
-  const int printStep = 10;
-  int batchsize = bottom[0]->shape()[0];
-  Dtype labelarr[1600], outputarr[1600], diffarr[1600];
-
- /* for (int i = 0; i < batchsize; i++){
-	  Dtype endeffectorBox[9];
-	  cudaMemcpy(endeffectorBox, &diff_.gpu_data()[9 * i], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-	  UpperLeft += sqrt(endeffectorBox[0] * endeffectorBox[0] + endeffectorBox[1] * endeffectorBox[1] + endeffectorBox[2] * endeffectorBox[2]) / (Dtype)batchsize;
-	  UpperRight += sqrt(endeffectorBox[3] * endeffectorBox[3] + endeffectorBox[4] * endeffectorBox[4] + endeffectorBox[5] * endeffectorBox[5]) / (Dtype)batchsize;
-	  Thumb += sqrt(endeffectorBox[6] * endeffectorBox[6] + endeffectorBox[7] * endeffectorBox[7] + endeffectorBox[8] * endeffectorBox[8]) / (Dtype)batchsize;
-  }
-
-  if (learningCount == printStep-1){
-	  printf("UpperLeft : %f, UpperRight : %f, Thumb : %f\n", UpperLeft / (Dtype)printStep, UpperRight / (Dtype)printStep, Thumb / (Dtype)printStep);
-	  UpperLeft = UpperRight = Thumb = 0;
-	  learningCount = 0;
-  }
-
-  learningCount = (learningCount+1) % 200;*/
-
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ // caffe_sub(count, bottom[0]->cpu_data(),
+	//  bottom[1]->cpu_data(),
+	//  diff_.mutable_cpu_data());
+ // Dtype cpudot;
+ // cpudot = caffe_cpu_dot(count, diff_.cpu_data(), diff_.cpu_data());
+ // Dtype cpuloss = dot / bottom[0]->num() / Dtype(2);
+ // Dtype out[3 * 221];
+ // Dtype label[3 * 221];
+ // Dtype diff[3 * 221];
+ //// cudaMemcpy(out, bottom[0]->gpu_data(), sizeof(Dtype) * 3 * 100, cudaMemcpyDeviceToHost);
+ //// cudaMemcpy(label, bottom[1]->gpu_data(), sizeof(Dtype) * 3 * 100, cudaMemcpyDeviceToHost);
+ //// cudaMemcpy(diff, diff_.mutable_gpu_data(), sizeof(Dtype) * 3 * 100, cudaMemcpyDeviceToHost);
+ // memcpy(out, bottom[0]->cpu_data(), sizeof(Dtype) * 3 * 221);
+ // memcpy(label, bottom[1]->cpu_data(), sizeof(Dtype) * 3 * 221);
+ // memcpy(diff, diff_.cpu_data(), sizeof(Dtype) * 3 * 221);
+ //// //cudaMemcpy(diff, diff_.mutable_gpu_data(), sizeof(Dtype) * 3 * 200, cudaMemcpyDeviceToHost);
+ // for (int i = 0; i < 221; i++){
+	//  printf("(%f %f %f), (%f %f %f)\n diff(%f %f %f)\n", (float)out[i * 3 + 0], (float)out[i * 3 + 1], (float)out[i * 3 + 2], (float)label[i * 3 + 0], (float)label[i * 3 + 1], (float)label[i * 3 + 2]
+	//	  , (float)diff[i * 3 + 0], (float)diff[i * 3 + 1], (float)diff[i * 3 + 2]);
+ // }
 
   //if (std::isnan(loss) || std::isinf(loss)){
 	 // printf("loss invalide Error!\n");
