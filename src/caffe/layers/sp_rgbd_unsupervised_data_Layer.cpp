@@ -179,13 +179,13 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 				for (int h = 0; h < dataimage.rows; h++){
 					for (int w = 0; w < dataimage.cols; w++){
 						for (int c = 0; c < dataimage.channels(); c++){
-							tempdataMat.ptr<float>(0)[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+							tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
 						}
 					}
 				}
 				for (int h = 0; h < labelimage.rows; h++){
 					for (int w = 0; w < labelimage.cols; w++){
-						templabelMat.ptr<float>(0)[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
+						templabelMat.at<float>(labelWidth_*h + w) = (float)labelimage.at<uchar>(h, w) / 255.0f;
 					}
 				}
 
@@ -211,7 +211,6 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 				}
 
 				for (int k = 0; k < depthMap.rows * depthMap.cols; k++){
-					printf("%f\t", depthMap.at<float>(k));
 					if (depthMap.at<float>(k) != 0)
 						depthMap.at<float>(k) = (depthMap.at<float>(k) -min) / (max - min);
 				}
@@ -219,12 +218,6 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 				cv::imshow("label", templabelMat);
 				cv::imshow("depthMap", depthMap);
 				cv::waitKey(0);
-
-				/*for (int h = 0; h < depthMap.rows; h++){
-					for (int w = 0; w < depthMap.cols; w++){
-						tempData.data[3 * height_*width_ + width_*h + w] = (float)depthMap.at<float>(h, w) / 255.0f;
-					}
-				}*/
 
 				data_blob.push_back(tempdataMat);
 				label_blob.push_back(templabelMat);

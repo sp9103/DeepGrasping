@@ -90,9 +90,9 @@ void SPUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
 		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
 		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
 
+		//////////////////////////////////////////////////////////////////데이터 제대로 들어갔나 확인////////////////////////////////////////////////////////
 		cv::Mat tempData(height_, width_, CV_32FC3);
 		cv::Mat tempLabel(labelHeight_, labelWidth_, CV_32FC1);
-
 		int idx = 0;
 		for (int c = 0; c < 3; c++){
 			for (int h = 0; h < height_; h++){
@@ -106,10 +106,10 @@ void SPUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
 				tempLabel.at<float>(h, w) = label[idx++];
 			}
 		}
-
 		cv::imshow("data", tempData);
 		cv::imshow("label", tempLabel);
 		cv::waitKey(0);
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -167,50 +167,37 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 
 			if (height_ != dataimage.rows || width_ != dataimage.cols)
 				cv::resize(dataimage, dataimage, cv::Size(height_, width_));
-			/*cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));*/
 			labelimage = dataimage.clone();
-
-			/////////////////////////////////////////////////////배경제거//////////////////////////////////////////
-			for (int h = 0; h < labelimage.rows; h++){
-				for (int w = 0; w < labelimage.cols; w++){
-					cv::Vec3b back = background.at<cv::Vec3b>(h, w);
-					cv::Vec3b data = labelimage.at<cv::Vec3b>(h, w);
-					
-					for (int c = 0; c < 3; c++)		back[c] = abs(back[c] - data[c]);
-
-					if (back[0] < backThreshold & back[1] < backThreshold && back[2] < backThreshold){
-						data[0] = data[1] = data[2] = 0;
-						labelimage.at<cv::Vec3b>(h,w) = data;
-					}
-				}
-			}
-			///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			cv::resize(labelimage, labelimage, cv::Size(labelHeight_, labelWidth_));
 			if (labelimage.channels() != 1){
 				cv::cvtColor(labelimage, labelimage, CV_BGR2GRAY);
 			}
 
-			/*cv::imshow("sub", labelimage);
-			cv::waitKey(0);*/
-
 			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
-				for (int h = 0; h < dataimage.rows; h++){
-					for (int w = 0; w < dataimage.cols; w++){
-						for (int c = 0; c < dataimage.channels(); c++){
-							tempdataMat.ptr<float>(0)[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+				for (int r = 0; r < 4; r++){
+					cv::transpose(dataimage, dataimage);
+					cv::flip(dataimage, dataimage, 1);
+					cv::transpose(labelimage, labelimage);
+					cv::flip(labelimage, labelimage, 1);
+
+					for (int h = 0; h < dataimage.rows; h++){
+						for (int w = 0; w < dataimage.cols; w++){
+							for (int c = 0; c < dataimage.channels(); c++){
+								tempdataMat.ptr<float>(0)[c*height_*width_ + width_*h + w] = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+							}
 						}
 					}
-				}
 
-				for (int h = 0; h < labelimage.rows; h++){
-					for (int w = 0; w < labelimage.cols; w++){
-						templabelMat.ptr<float>(0)[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
+					for (int h = 0; h < labelimage.rows; h++){
+						for (int w = 0; w < labelimage.cols; w++){
+							templabelMat.ptr<float>(0)[labelWidth_*h + w] = (float)labelimage.at<uchar>(h, w) / 255.0f;
+						}
 					}
-				}
 
-				data_blob.push_back(tempdataMat);
-				label_blob.push_back(templabelMat);
+					data_blob.push_back(tempdataMat.clone());
+					label_blob.push_back(templabelMat.clone());
+				}
 			}
 		}
 
@@ -228,12 +215,12 @@ template <typename Dtype>
 void SPUnsupervisedDataLayer<Dtype>::makeRandbox(int *arr, int size){
 	for (int i = 0; i < size; i++)
 		arr[i] = i;
-	for (int i = 0; i < size; i++){
+	/*for (int i = 0; i < size; i++){
 		int tidx = rand() % size;
 		int t = arr[i];
 		arr[i] = arr[tidx];
 		arr[tidx] = t;
-	}
+	}*/
 }
 
 template <typename Dtype>

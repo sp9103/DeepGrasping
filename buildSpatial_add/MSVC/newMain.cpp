@@ -380,48 +380,19 @@ int time() {
 RegisterBrewFunction(time);
 
 int main(int argc, char** argv) {
-	/*int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--snapshot=snapshot/End_to_End_iter_20000.solverstate", "--gpu=all" };*/
-	/*int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--weights=snapshot_whitening/End_to_End_iter_220000.caffemodel", "--gpu=all" };*/
-
-	//int targc = /*5*/4;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt"/*, "--weights=bvlc_googlenet.caffemodel"*/,"--gpu=all" };
-	/*int targc = 4;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--gpu=all" };*/
-	//int targc = 5/*4*/;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--weights=snapshot_reconstruct/End_to_End_iter_90000.caffemodel", "--gpu=all" };
-	//int targc = 5/*4*/;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--weights=snapshot_Depth/End_to_End_iter_600000.caffemodel", "--gpu=all" };
-	//int targc = 5/*4*/;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--weights=End_to_End_iter_250000.caffemodel", "--gpu=all" };
-	//int targc = 5/*4*/;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--weights=snapshot_supervised/End_to_End_iter_30000.caffemodel", "--gpu=all" };
-	/*int targc = 4;
-	char *targv[4] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt", "--gpu=all" };*/
-	//int targc = 3;
-	//char *targv[3] = { "bin\\caffe.exe", "train", "--solver=solver.prototxt"};
-
-	//int targc = 4;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", "--gpu=all" };
-	//int targc = 5;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", "--weights=snapshot_uvd_xyz/uvd_xyz_iter_133000.caffemodel", "--gpu=all" };
-	//int targc = 4;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=uvd_xyz/solver.prototxt", /*"--weights=Matlab_uvd_xyz/uvd_xyz_iter_6000.caffemodel",*/ "--gpu=all" };
-
 	///////////////////unsupervised learning////////////////////////////////////////////////////////////////
 	/*int targc = 4;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--gpu=all" };*/
-	/*int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--weights=UnsupervisedRGBD/snapshot_RGB/End_to_End_iter_140000.caffemodel", "--gpu=all" };*/
+	int targc = 5;
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--weights=bvlc_googlenet.caffemodel", "--gpu=all" };
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////uvd_xyz net learning/////////////////////////////////////////////////////////
 	/*int targc = 4;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt", "--gpu=all" };*/
-	int targc = 5;
+	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt",
-		"--weights=UVD_XYZ_net/camera_xyz_robot_xyz/xyz_robot_iter_20000.caffemodel,UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_3_3_iter_100000.caffemodel", "--gpu=all" };
+		"--weights=UVD_XYZ_net/camera_xyz_robot_xyz/xyz_robot_iter_20000.caffemodel,UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_3_3_iter_100000.caffemodel", "--gpu=all" };*/
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	char **argvp;

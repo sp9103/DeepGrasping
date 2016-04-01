@@ -8,13 +8,13 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 200
+    batch_size: 400
     channels: 3
     height : 160
     width : 160
     data_path : "D:/RGBDData/UnsupervisedLearning"
  
-    data_limit : 110
+    #data_limit : 110
   }
 }
 layer {
@@ -36,7 +36,7 @@ layer {
   }
 }
 layer {
-  name: "conv1"
+  name: "conv1/7x7_s2"
   type: "Convolution"
   bottom: "data"
   top: "conv1"
@@ -145,7 +145,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 64
+    num_output: 32
     kernel_size: 5
     #visualize: 3
     weight_filler {
@@ -185,7 +185,7 @@ layer {
   bottom: "data"
   top: "spatial1"
   spatial_param{
-	alpha: 4
+	alpha: 2
   }
 }
 layer {
