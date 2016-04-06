@@ -429,6 +429,8 @@ protected:
 	void RGBDImageloadAll(const char* datapath, const char* depthpath);
 	bool fileTypeCheck(char *fileName);
 	void makeRandbox(int *arr, int size);
+	void BackgroudLoad(const char *path, const char *fileName);
+	cv::Mat subBackground(cv::Mat rgb, cv::Mat depth);
 
 	int batch_size_, channels_, height_, width_, size_;
 	int labelHeight_, labelWidth_;
@@ -439,10 +441,11 @@ protected:
 	std::string data_path_;
 	std::string label_path_;
 
-	//std::vector<RGBImgData> data_blob;
-	//std::vector<LabelData> label_blob;
 	std::vector<cv::Mat> data_blob;
 	std::vector<cv::Mat> label_blob;
+	
+	cv::Mat backRGB;
+	cv::Mat backDepth;
 
 	int *randbox;
 	int dataidx;

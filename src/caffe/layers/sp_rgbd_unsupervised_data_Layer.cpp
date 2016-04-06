@@ -38,6 +38,9 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>
   label_shape[1] = tSize;
   top[1]->Reshape(label_shape);
 
+  //Background load - 배경제거를 위해서
+  BackgroudLoad("D:\\RGBDData\\background", "0_7");
+
   //전체 로드
   RGBDImageloadAll(data_path_.c_str(), data_path_.c_str());
   CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
@@ -86,17 +89,17 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>&
 		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
 		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
 		
-		///////////////////////////
-		cv::Mat tempMat;
-		tempMat.create(height_, width_, CV_32FC3);
-		int idx = 0;
-		for (int c = 0; c < 3; c++){
-			for (int h = 0; h < height_; h++){
-				for (int w = 0; w < width_; w++){
-					tempMat.at<cv::Vec3f>(h, w)[c] = (float)data[idx++];
-				}
-			}
-		}
+		/////////////////////////////
+		//cv::Mat tempMat;
+		//tempMat.create(height_, width_, CV_32FC3);
+		//int idx = 0;
+		//for (int c = 0; c < 3; c++){
+		//	for (int h = 0; h < height_; h++){
+		//		for (int w = 0; w < width_; w++){
+		//			tempMat.at<cv::Vec3f>(h, w)[c] = (float)data[idx++];
+		//		}
+		//	}
+		//}
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -168,12 +171,23 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 				cv::cvtColor(dataimage, dataimage, CV_BGR2GRAY);
 			}
 
+			//Depth 열고 넣어주기
+			int depthpathlen = strlen(tdepthBuf);
+			int depthwidth, depthheight, depthType;
+			tdepthBuf[depthpathlen - 3] = 'b';
+			tdepthBuf[depthpathlen - 2] = 'i';
+			tdepthBuf[depthpathlen - 1] = 'n';
+			FILE *fp = fopen(tdepthBuf, "rb");
+			fread(&depthwidth, sizeof(int), 1, fp);
+			fread(&depthheight, sizeof(int), 1, fp);
+			fread(&depthType, sizeof(int), 1, fp);
+			depthMap.create(depthheight, depthwidth, depthType);
+			for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+			fclose(fp);
+
 			if (height_ != dataimage.rows || width_ != dataimage.cols)
 				cv::resize(dataimage, dataimage, cv::Size(height_, width_));
-			cv::resize(dataimage, labelimage, cv::Size(labelHeight_, labelWidth_));
-			if (dataimage.channels() != 1){
-				cv::cvtColor(labelimage, labelimage, CV_BGR2GRAY);
-			}
+			labelimage = subBackground(dataimage, depthMap);
 
 			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
 				for (int h = 0; h < dataimage.rows; h++){
@@ -189,34 +203,14 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 					}
 				}
 
-				//Depth 열고 넣어주기
-				int depthpathlen = strlen(tdepthBuf);
-				int depthwidth, depthheight, depthType;
-				tdepthBuf[depthpathlen - 3] = 'b';
-				tdepthBuf[depthpathlen - 2] = 'i';
-				tdepthBuf[depthpathlen - 1] = 'n';
-				FILE *fp = fopen(tdepthBuf, "rb");
-				fread(&depthwidth, sizeof(int), 1, fp);
-				fread(&depthheight, sizeof(int), 1, fp);
-				fread(&depthType, sizeof(int), 1, fp);
-				depthMap.create(depthheight, depthwidth, depthType);
-				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
-				fclose(fp);
-
-				float max = -99999;
-				float min = 99999;
-				for (int k = 0; k < depthMap.rows * depthMap.cols; k++){
-					if (max < depthMap.at<float>(k))	max = depthMap.at<float>(k);
-					if(depthMap.at<float>(k) != 0 && depthMap.at<float>(k) < min)	min = depthMap.at<float>(k);
-				}
-
-				for (int k = 0; k < depthMap.rows * depthMap.cols; k++){
-					if (depthMap.at<float>(k) != 0)
-						depthMap.at<float>(k) = (depthMap.at<float>(k) -min) / (max - min);
-				}
+				/*for (int k = 0; k < depthMap.rows * depthMap.cols; k++){
+					depthMap.at<float>(k) = depthMap.at<float>(k) / (8000 / 256) / 255.f;
+				}*/
+				//배경과 차이 보고 빼버리기
 
 				cv::imshow("label", templabelMat);
 				cv::imshow("depthMap", depthMap);
+				cv::imshow("rgb", tempdataMat);
 				cv::waitKey(0);
 
 				data_blob.push_back(tempdataMat);
@@ -262,6 +256,41 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::makeRandbox(int *arr, int size){
 		arr[i] = arr[tidx];
 		arr[tidx] = t;
 	}
+}
+
+template <typename Dtype>
+void SPRGBDUnsupervisedDataLayer<Dtype>::BackgroudLoad(const char *path, const char *fileName){
+	char RGBbuf[256], DepthBuf[256];
+	sprintf(RGBbuf, "%s\\RGB\\%s.bmp", path, fileName);
+	sprintf(DepthBuf, "%s\\DEPTHMAP\\%s.bin", path, fileName);
+	backRGB = cv::imread(RGBbuf);
+
+	int depthwidth, depthheight, depthType;
+	FILE *backfp = fopen(DepthBuf, "rb");
+	fread(&depthwidth, sizeof(int), 1, backfp);
+	fread(&depthheight, sizeof(int), 1, backfp);
+	fread(&depthType, sizeof(int), 1, backfp);
+	backDepth.create(depthheight, depthwidth, depthType);
+	for (int i = 0; i < backDepth.rows * backDepth.cols; i++)		fread(&backDepth.at<float>(i), sizeof(float), 1, backfp);
+	fclose(backfp);
+}
+
+template <typename Dtype>
+cv::Mat SPRGBDUnsupervisedDataLayer<Dtype>::subBackground(cv::Mat rgb, cv::Mat depth){
+	cv::Mat label;
+
+	//배경이 입력되지 않으면 그냥 label 생성
+	if (backRGB.cols == 0){
+		cv::resize(rgb, label, cv::Size(labelHeight_, labelWidth_));
+		if (rgb.channels() != 1){
+			cv::cvtColor(label, label, CV_BGR2GRAY);
+		}
+	}
+	else{
+
+	}
+
+	return label;
 }
 
 INSTANTIATE_CLASS(SPRGBDUnsupervisedDataLayer);
