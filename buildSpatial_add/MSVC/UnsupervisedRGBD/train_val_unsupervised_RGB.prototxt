@@ -8,7 +8,7 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 400
+    batch_size: 20
     channels: 3
     height : 160
     width : 160
@@ -145,7 +145,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 32
+    num_output: 64
     kernel_size: 5
     #visualize: 3
     weight_filler {
@@ -185,7 +185,7 @@ layer {
   bottom: "data"
   top: "spatial1"
   spatial_param{
-	alpha: 2
+	alpha: 4
   }
 }
 layer {

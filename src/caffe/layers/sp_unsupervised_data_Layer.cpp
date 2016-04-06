@@ -90,26 +90,26 @@ void SPUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bot
 		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
 		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
 
-		//////////////////////////////////////////////////////////////////데이터 제대로 들어갔나 확인////////////////////////////////////////////////////////
-		cv::Mat tempData(height_, width_, CV_32FC3);
-		cv::Mat tempLabel(labelHeight_, labelWidth_, CV_32FC1);
-		int idx = 0;
-		for (int c = 0; c < 3; c++){
-			for (int h = 0; h < height_; h++){
-				for (int w = 0; w < width_; w++)
-					tempData.at<cv::Vec3f>(h, w)[c] = data[idx++];
-			}
-		}
-		idx = 0;
-		for (int h = 0; h < labelHeight_; h++){
-			for (int w = 0; w < labelWidth_; w++){
-				tempLabel.at<float>(h, w) = label[idx++];
-			}
-		}
-		cv::imshow("data", tempData);
-		cv::imshow("label", tempLabel);
-		cv::waitKey(0);
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////데이터 제대로 들어갔나 확인////////////////////////////////////////////////////////
+		//cv::Mat tempData(height_, width_, CV_32FC3);
+		//cv::Mat tempLabel(labelHeight_, labelWidth_, CV_32FC1);
+		//int idx = 0;
+		//for (int c = 0; c < 3; c++){
+		//	for (int h = 0; h < height_; h++){
+		//		for (int w = 0; w < width_; w++)
+		//			tempData.at<cv::Vec3f>(h, w)[c] = data[idx++];
+		//	}
+		//}
+		//idx = 0;
+		//for (int h = 0; h < labelHeight_; h++){
+		//	for (int w = 0; w < labelWidth_; w++){
+		//		tempLabel.at<float>(h, w) = label[idx++];
+		//	}
+		//}
+		//cv::imshow("data", tempData);
+		//cv::imshow("label", tempLabel);
+		//cv::waitKey(0);
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -175,7 +175,7 @@ void SPUnsupervisedDataLayer<Dtype>::UnsupervisedImageloadAll(const char* datapa
 			}
 
 			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
-				for (int r = 0; r < 4; r++){
+				for (int r = 0; r < 3; r++){
 					cv::transpose(dataimage, dataimage);
 					cv::flip(dataimage, dataimage, 1);
 					cv::transpose(labelimage, labelimage);
@@ -215,12 +215,12 @@ template <typename Dtype>
 void SPUnsupervisedDataLayer<Dtype>::makeRandbox(int *arr, int size){
 	for (int i = 0; i < size; i++)
 		arr[i] = i;
-	/*for (int i = 0; i < size; i++){
+	for (int i = 0; i < size; i++){
 		int tidx = rand() % size;
 		int t = arr[i];
 		arr[i] = arr[tidx];
 		arr[tidx] = t;
-	}*/
+	}
 }
 
 template <typename Dtype>

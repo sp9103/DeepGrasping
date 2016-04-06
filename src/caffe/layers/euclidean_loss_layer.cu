@@ -54,47 +54,46 @@ void EuclideanLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	 //  }
   //}
 
-  ////if (!std::isnan(loss)){
+  //if (!std::isnan(loss)){
 
-	 // //////////////////////////////////////////
-	 // cv::Mat lossLayer;
-	 // const int labelwidth = 80;
-	 // const int labelheight = 80;
-	 // lossLayer.create(labelheight, labelwidth * 3, CV_32FC1);
+	  //////////////////////////////////////////
+	  cv::Mat lossLayer;
+	  const int labelwidth = 80;
+	  const int labelheight = 80;
+	  lossLayer.create(labelheight, labelwidth * 3, CV_32FC1);
 
-	 // ////////////label & output 출력
-	 // int cCount = bottom[0]->num() < 10 ? bottom[0]->num() : 10;
-	 // for (int c = 0; c < cCount; c++){
-		//  char buf[32];
-		//  Dtype labelarr[6400], outputarr[6400], diffarr[6400];
-		//  cudaMemcpy(labelarr, &bottom[1]->gpu_data()[6400 * c], sizeof(Dtype) * 6400, cudaMemcpyDeviceToHost);
-		//  cudaMemcpy(outputarr, &bottom[0]->gpu_data()[6400 * c], sizeof(Dtype) * 6400, cudaMemcpyDeviceToHost);
-		//  cudaMemcpy(diffarr, &diff_.gpu_data()[6400 * c], sizeof(Dtype) * 3600, cudaMemcpyDeviceToHost);
+	  ////////////label & output 출력
+	  int cCount = bottom[0]->num() < 10 ? bottom[0]->num() : 10;
+	  for (int c = 0; c < cCount; c++){
+		  char buf[32];
+		  Dtype labelarr[6400], outputarr[6400], diffarr[6400];
+		  cudaMemcpy(labelarr, &bottom[1]->gpu_data()[6400 * c], sizeof(Dtype) * 6400, cudaMemcpyDeviceToHost);
+		  cudaMemcpy(outputarr, &bottom[0]->gpu_data()[6400 * c], sizeof(Dtype) * 6400, cudaMemcpyDeviceToHost);
+		  cudaMemcpy(diffarr, &diff_.gpu_data()[6400 * c], sizeof(Dtype) * 6400, cudaMemcpyDeviceToHost);
 
-		//  for (int j = 0; j < labelheight * labelwidth; j++){
-		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth) = (float)labelarr[j] * 255.f;
-		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth) = (float)outputarr[j] *255.f;
-		//  }
+		  for (int j = 0; j < labelheight * labelwidth; j++){
+			  lossLayer.at<float>(j / labelwidth, j % labelwidth) = (float)labelarr[j];
+			  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth) = (float)outputarr[j];
+		  }
 
-		//  Dtype max = -9999;
-		//  Dtype min = 9999;
-		//  
-		//  for (int j = 0; j < labelheight * labelwidth; j++){
-		//	  if (max < diffarr[j])		max = diffarr[j];
-		//	  if (min > diffarr[j])		min = diffarr[j];
-		//  }
+		  Dtype max = -9999;
+		  Dtype min = 9999;
+		  
+		  for (int j = 0; j < labelheight * labelwidth; j++){
+			  if (max < diffarr[j])		max = diffarr[j];
+			  if (min > diffarr[j])		min = diffarr[j];
+		  }
 
-		//  for (int j = 0; j < labelheight * labelwidth; j++)
-		//	  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth * 2) = (float)((diffarr[j] - min) / (max - min));
+		  for (int j = 0; j < labelheight * labelwidth; j++)
+			  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth * 2) = (float)((diffarr[j] - min) / (max - min));
 
-		//  sprintf(buf, "Loss_%d.bmp", c);
-		//  cv::imshow(buf, lossLayer);
-		//  cv::imwrite(buf, lossLayer);
-		//  cv::waitKey(0);
-	 // }
-  ////}
-  //cv::destroyAllWindows();
-  //////////////////////////////////////////////////////////
+		  sprintf(buf, "Loss_%d.bmp", c);
+		  cv::imshow(buf, lossLayer);
+		  cv::waitKey(0);
+	  }
+  //}
+  cv::destroyAllWindows();
+  ////////////////////////////////////////////////////////
 }
 
 //Diff 0번지는 값있고 1번지는 없음
