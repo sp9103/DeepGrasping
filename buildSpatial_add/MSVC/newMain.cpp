@@ -384,7 +384,7 @@ int main(int argc, char** argv) {
 	/*int targc = 4;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--gpu=all" };*/
 	int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--weights=UnsupervisedRGBD/snapshot_RGB_widthGoogleNet/End_to_End_iter_110000.caffemodel", "--gpu=all" };
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--weights=bvlc_googlenet.caffemodel", "--gpu=all" };
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////uvd_xyz net learning/////////////////////////////////////////////////////////
