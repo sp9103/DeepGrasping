@@ -189,22 +189,29 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 				cv::resize(dataimage, dataimage, cv::Size(height_, width_));
 			labelimage = subBackground(dataimage, depthMap);
 
-			if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
-				for (int h = 0; h < dataimage.rows; h++){
-					for (int w = 0; w < dataimage.cols; w++){
-						for (int c = 0; c < dataimage.channels(); c++){
-							tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+			for (int r = 0; r < 4; r++){
+				cv::transpose(dataimage, dataimage);
+				cv::flip(dataimage, dataimage, 1);
+				cv::transpose(labelimage, labelimage);
+				cv::flip(labelimage, labelimage, 1);
+
+				if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
+					for (int h = 0; h < dataimage.rows; h++){
+						for (int w = 0; w < dataimage.cols; w++){
+							for (int c = 0; c < dataimage.channels(); c++){
+								tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
+							}
 						}
 					}
-				}
-				for (int h = 0; h < labelimage.rows; h++){
-					for (int w = 0; w < labelimage.cols; w++){
-						templabelMat.at<float>(labelWidth_*h + w) = (float)labelimage.at<uchar>(h, w) / 255.0f;
+					for (int h = 0; h < labelimage.rows; h++){
+						for (int w = 0; w < labelimage.cols; w++){
+							templabelMat.at<float>(labelWidth_*h + w) = (float)labelimage.at<uchar>(h, w) / 255.0f;
+						}
 					}
-				}
 
-				data_blob.push_back(tempdataMat);
-				label_blob.push_back(templabelMat);
+					data_blob.push_back(tempdataMat.clone());
+					label_blob.push_back(templabelMat.clone());
+				}
 			}
 		}
 
@@ -278,19 +285,52 @@ cv::Mat SPRGBDUnsupervisedDataLayer<Dtype>::subBackground(cv::Mat rgb, cv::Mat d
 		}
 	}
 	else{
-		const float threshold = 10;
+		const float threshold = 5;
 		cv::Mat tMat(rgb.rows, rgb.cols, CV_8UC1);
 		for (int i = 0; i < rgb.rows * rgb.cols; i++){
 			float bVal = backDepth.at<float>(i);
 			float oVal = depth.at<float>(i);
 
 			if (bVal == 0 || oVal == 0)		continue;
-			if (abs(oVal - bVal) > 10){
+			if (abs(oVal - bVal) > threshold){
 				tMat.at<uchar>(i) = 255;
 			}
 			else{
 				tMat.at<uchar>(i) = 0;
 			}
+		}
+		cv::erode(tMat, tMat, cv::Mat(), cv::Point(-1, -1), 2);
+		cv::dilate(tMat, tMat, cv::Mat(), cv::Point(-1, -1), 8);
+
+		//ColorBase sub image
+		for (int i = 0; i < rgb.rows * rgb.cols; i++){
+			uchar binVal = tMat.at<uchar>(i);
+			if (binVal > 0){
+				cv::Vec3b bVal = backRGB.at<cv::Vec3b>(i);
+				cv::Vec3b oVal = rgb.at<cv::Vec3b>(i);
+				cv::Vec3b subVal;
+				const int cThreshold = 30;
+				for (int j = 0; j < 3; j++)		subVal[j] = abs((int)bVal[j] - (int)oVal[j]);
+				if (subVal[0] < cThreshold && subVal[1] < cThreshold && subVal[2] < cThreshold)
+					tMat.at<uchar>(i) = 0;
+			}
+		}
+
+		//mask
+		for (int i = 0; i < rgb.rows * rgb.cols; i++){
+			uchar val = tMat.at<uchar>(i);
+			if (val > 0)	label.at<cv::Vec3b>(i) = rgb.at<cv::Vec3b>(i);
+			else			label.at<cv::Vec3b>(i) = cv::Vec3f(0, 0, 0);
+		}
+
+		/*cv::imshow("rgb", rgb);
+		cv::imshow("label", label);
+		cv::imshow("background", backRGB);
+		cv::waitKey(0);*/
+		
+		cv::resize(rgb, label, cv::Size(labelHeight_, labelWidth_));
+		if (rgb.channels() != 1){
+			cv::cvtColor(label, label, CV_BGR2GRAY);
 		}
 	}
 
