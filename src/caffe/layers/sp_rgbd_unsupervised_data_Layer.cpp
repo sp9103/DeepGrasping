@@ -203,16 +203,6 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, 
 					}
 				}
 
-				/*for (int k = 0; k < depthMap.rows * depthMap.cols; k++){
-					depthMap.at<float>(k) = depthMap.at<float>(k) / (8000 / 256) / 255.f;
-				}*/
-				//배경과 차이 보고 빼버리기
-
-				cv::imshow("label", templabelMat);
-				cv::imshow("depthMap", depthMap);
-				cv::imshow("rgb", tempdataMat);
-				cv::waitKey(0);
-
 				data_blob.push_back(tempdataMat);
 				label_blob.push_back(templabelMat);
 			}
@@ -278,6 +268,7 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::BackgroudLoad(const char *path, const c
 template <typename Dtype>
 cv::Mat SPRGBDUnsupervisedDataLayer<Dtype>::subBackground(cv::Mat rgb, cv::Mat depth){
 	cv::Mat label;
+	label.create(rgb.rows, rgb.cols, rgb.type());
 
 	//배경이 입력되지 않으면 그냥 label 생성
 	if (backRGB.cols == 0){
@@ -287,10 +278,23 @@ cv::Mat SPRGBDUnsupervisedDataLayer<Dtype>::subBackground(cv::Mat rgb, cv::Mat d
 		}
 	}
 	else{
+		const float threshold = 10;
+		cv::Mat tMat(rgb.rows, rgb.cols, CV_8UC1);
+		for (int i = 0; i < rgb.rows * rgb.cols; i++){
+			float bVal = backDepth.at<float>(i);
+			float oVal = depth.at<float>(i);
 
+			if (bVal == 0 || oVal == 0)		continue;
+			if (abs(oVal - bVal) > 10){
+				tMat.at<uchar>(i) = 255;
+			}
+			else{
+				tMat.at<uchar>(i) = 0;
+			}
+		}
 	}
 
-	return label;
+	return label.clone();
 }
 
 INSTANTIATE_CLASS(SPRGBDUnsupervisedDataLayer);
