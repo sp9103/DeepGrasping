@@ -89,17 +89,17 @@ void SPRGBDUnsupervisedDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>&
 		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
 		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
 		
-		/////////////////////////////
-		//cv::Mat tempMat;
-		//tempMat.create(height_, width_, CV_32FC3);
-		//int idx = 0;
-		//for (int c = 0; c < 3; c++){
-		//	for (int h = 0; h < height_; h++){
-		//		for (int w = 0; w < width_; w++){
-		//			tempMat.at<cv::Vec3f>(h, w)[c] = (float)data[idx++];
-		//		}
-		//	}
-		//}
+		///////////////////////////
+		cv::Mat tempMat;
+		tempMat.create(height_, width_, CV_32FC3);
+		int idx = 0;
+		for (int c = 0; c < 3; c++){
+			for (int h = 0; h < height_; h++){
+				for (int w = 0; w < width_; w++){
+					tempMat.at<cv::Vec3f>(h, w)[c] = (float)data[idx++];
+				}
+			}
+		}
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -328,7 +328,7 @@ cv::Mat SPRGBDUnsupervisedDataLayer<Dtype>::subBackground(cv::Mat rgb, cv::Mat d
 		cv::imshow("background", backRGB);
 		cv::waitKey(0);*/
 		
-		cv::resize(rgb, label, cv::Size(labelHeight_, labelWidth_));
+		cv::resize(label, label, cv::Size(labelHeight_, labelWidth_));
 		if (rgb.channels() != 1){
 			cv::cvtColor(label, label, CV_BGR2GRAY);
 		}

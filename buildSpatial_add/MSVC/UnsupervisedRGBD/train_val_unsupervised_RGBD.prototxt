@@ -8,7 +8,7 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 80
+    batch_size: 20
     channels: 3
     height : 160
     width : 160
@@ -180,6 +180,7 @@ layer {
   name: "spatial"
   type: "Spatial"
   bottom: "conv3"
+  bottom: "data"
   top: "spatial1"
   spatial_param{
 	alpha: 4

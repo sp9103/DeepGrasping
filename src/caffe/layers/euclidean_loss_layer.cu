@@ -63,7 +63,7 @@ void EuclideanLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	 // lossLayer.create(labelheight, labelwidth * 3, CV_32FC1);
 
 	 // ////////////label & output Ãâ·Â
-	 // int cCount = bottom[0]->num() < 10 ? bottom[0]->num() : 10;
+	 // int cCount = bottom[0]->num() <= 20 ? bottom[0]->num() : 20;
 	 // for (int c = 0; c < cCount; c++){
 		//  char buf[32];
 		//  Dtype labelarr[6400], outputarr[6400], diffarr[6400];
