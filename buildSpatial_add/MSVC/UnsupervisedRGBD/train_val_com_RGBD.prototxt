@@ -213,6 +213,17 @@ layer {
     }
   }
 }
+#layer {
+#  name: "distance"
+#  type: "EuclideanDist"
+#  bottom: "fc1"
+#  bottom: "data"
+#  bottom: "label"
+#  top: "accuracy"
+  #include {
+  #  phase: TEST
+  #}
+#}
 layer {
   name: "EuclideanLoss"
   type: "EuclideanLoss"

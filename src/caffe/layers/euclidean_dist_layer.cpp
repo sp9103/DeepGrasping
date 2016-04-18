@@ -19,8 +19,8 @@ void EuclideanDistLayer<Dtype>::LayerSetUp(
 template <typename Dtype>
 void EuclideanDistLayer<Dtype>::Reshape(
   const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  CHECK_LE(top_k_, bottom[0]->count() / bottom[1]->count())
-      << "top_k must be less than or equal to the number of classes.";
+  //CHECK_LE(top_k_, bottom[0]->count() / bottom[1]->count())
+  //    << "top_k must be less than or equal to the number of classes.";
   label_axis_ =
       bottom[0]->CanonicalAxisIndex(this->layer_param_.accuracy_param().axis());
   outer_num_ = bottom[0]->count(0, label_axis_);
@@ -53,10 +53,6 @@ void EuclideanDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype* diffdata = diff_.cpu_data();
   const Dtype* bot = bottom[1]->cpu_data();
   const Dtype* output = bottom[0]->cpu_data();
-  //const Dtype* input = bottom[2]->cpu_data();
-
-  //Dtype temp[30];
-  //memcpy(temp, output, sizeof(Dtype) * 30);
 
   for (int i = 0; i < batchsize; i++){
 	  float sq = 0;
@@ -73,6 +69,34 @@ void EuclideanDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
    top[0]->mutable_cpu_data()[0] = dist;
    LOG(INFO) << "Distance: " << dist;
+
+   //const Dtype* label = bottom[2]->cpu_data();
+   //cv::Mat img(160, 160, CV_32FC3);
+   //for (int i = 0; i < 20; i++){
+	  // char buf[256];
+
+	  // for (int h = 0; h < 160; h++){
+		 //  for (int w = 0; w < 160; w++){
+			//   for (int c = 0; c < 3; c++){
+			//	   //tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)dataimage.at<cv::Vec3b>(h, w)[c]
+			//	   img.at<cv::Vec3f>(h, w)[c] = (float)bot[i * 160 * 160 * 3 + c * 160 * 160 + 160 * h + w];
+			//   }
+		 //  }
+	  // }
+
+	  // cv::Point pos;
+	  // pos.x = output[2 * i + 0];
+	  // pos.y = output[2 * i + 1];
+	  // cv::circle(img, pos, 5, cv::Scalar(0, 0, 255), -1);
+	  // pos.x = label[2 * i + 0];
+	  // pos.y = label[2 * i + 1];
+	  // cv::circle(img, pos, 5, cv::Scalar(255, 0, 0), -1);
+
+	  // sprintf(buf, "%d", i);
+	  // cv::imshow(buf, img);
+	  // cv::waitKey(0);
+   //}
+
 }
 
 INSTANTIATE_CLASS(EuclideanDistLayer);

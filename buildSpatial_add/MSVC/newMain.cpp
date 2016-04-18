@@ -383,10 +383,10 @@ int main(int argc, char** argv) {
 	///////////////////unsupervised learning////////////////////////////////////////////////////////////////
 	/*int targc = 4;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--gpu=all" };*/
-	/*int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--weights=UnsupervisedRGBD/snapshot_RGB_widthGoogleNet/End_to_End_iter_330000.caffemodel", "--gpu=all" };*/
 	int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--weights=bvlc_googlenet.caffemodel", "--gpu=all" };
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--weights=UnsupervisedRGBD/snapshot_RGBD_com/End_to_End_iter_110000.caffemodel", "--gpu=all" };
+	/*int targc = 5;
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--snapshot=UnsupervisedRGBD/snapshot_RGBD_com/End_to_End_iter_110000.solverstate", "--gpu=all" };*/
 	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--snapshot=UnsupervisedRGBD/snapshot_RGB_widthGoogleNet/End_to_End_iter_330000.solverstate", "--gpu=all" };*/
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
