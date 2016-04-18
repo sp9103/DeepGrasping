@@ -8,7 +8,7 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 20
+    batch_size: 200
     channels: 3
     height : 160
     width : 160
@@ -202,7 +202,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 6400
+    num_output: 2
     weight_filler {
       type: "gaussian"
       std: 0.005

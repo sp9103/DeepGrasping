@@ -29,9 +29,8 @@ void SPRGBDCOMDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& botto
   CHECK_GT(batch_size_ * size_, 0) <<
       "batch_size, channels, height, and width must be specified and"
       " positive in memory_data_param";
-  labelHeight_ = 80;
-  labelWidth_ = 80;
-  int tSize = labelHeight_ * labelWidth_;
+
+  int tSize = 2;
   top[0]->Reshape(batch_size_, channels_, height_, width_);
   vector<int> label_shape = top[0]->shape();
   label_shape.resize(1 + 1);
@@ -42,7 +41,7 @@ void SPRGBDCOMDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& botto
   BackgroudLoad("D:\\RGBDData\\background", "0_7");
 
   //전체 로드
-  RGBDImageloadAll(data_path_.c_str(), data_path_.c_str());
+  RGBDloadAll_calcCom(data_path_.c_str(), data_path_.c_str());
   CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
   CHECK_GT(data_blob.size(), 0) << "data is empty";
   //CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
@@ -87,10 +86,10 @@ void SPRGBDCOMDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		cv::Mat labelImg = this->label_blob.at(randbox[dataidx]);
 
 		caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
-		caffe_copy(labelHeight_ * labelWidth_, labelImg.ptr<Dtype>(0), label);
+		caffe_copy(2, labelImg.ptr<Dtype>(0), label);
 		
 		///////////////////////////
-		cv::Mat tempMat;
+		/*cv::Mat tempMat;
 		tempMat.create(height_, width_, CV_32FC3);
 		int idx = 0;
 		for (int c = 0; c < 3; c++){
@@ -99,7 +98,7 @@ void SPRGBDCOMDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 					tempMat.at<cv::Vec3f>(h, w)[c] = (float)data[idx++];
 				}
 			}
-		}
+		}*/
 
 		label += top[1]->offset(1);
 		data += top[0]->offset(1);
@@ -113,7 +112,7 @@ void SPRGBDCOMDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void SPRGBDCOMDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, const char* depthpath){
+void SPRGBDCOMDataLayer<Dtype>::RGBDloadAll_calcCom(const char* datapath, const char* depthpath){
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	TCHAR szDir[MAX_PATH] = { 0, }, szDepthDir[MAX_PATH] = { 0, };
@@ -164,12 +163,9 @@ void SPRGBDCOMDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, const cha
 			
 			//tempdataMat.create(height_, width_, CV_32FC4);
 			tempdataMat.create(height_, width_, CV_32FC3);
-			templabelMat.create(labelHeight_, labelWidth_, CV_32FC1);
+			templabelMat.create(2, 1, CV_32FC1);
 
 			dataimage = cv::imread(tBuf);
-			if (channels_ == 1){
-				cv::cvtColor(dataimage, dataimage, CV_BGR2GRAY);
-			}
 
 			//Depth 열고 넣어주기
 			int depthpathlen = strlen(tdepthBuf);
@@ -195,7 +191,7 @@ void SPRGBDCOMDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, const cha
 				cv::transpose(labelimage, labelimage);
 				cv::flip(labelimage, labelimage, 1);
 
-				if (dataimage.rows == height_ && dataimage.cols == width_ && labelimage.rows == labelHeight_ && labelimage.cols == labelWidth_){
+				if (dataimage.rows == height_ && dataimage.cols == width_){
 					for (int h = 0; h < dataimage.rows; h++){
 						for (int w = 0; w < dataimage.cols; w++){
 							for (int c = 0; c < dataimage.channels(); c++){
@@ -203,11 +199,23 @@ void SPRGBDCOMDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, const cha
 							}
 						}
 					}
+					cv::Point2f objPos = cv::Point2f(0, 0);
+					int objpixelcount = 0;
 					for (int h = 0; h < labelimage.rows; h++){
 						for (int w = 0; w < labelimage.cols; w++){
-							templabelMat.at<float>(labelWidth_*h + w) = (float)labelimage.at<uchar>(h, w) / 255.0f;
+							uchar val = labelimage.at<uchar>(h, w);
+							if (val > 0){
+								objPos.x += w;
+								objPos.y += h;
+								objpixelcount++;
+							}
 						}
 					}
+					objPos.x /= objpixelcount;
+					objPos.y /= objpixelcount;
+
+					templabelMat.at<float>(0) = objPos.x;
+					templabelMat.at<float>(1) = objPos.y;
 
 					data_blob.push_back(tempdataMat.clone());
 					label_blob.push_back(templabelMat.clone());
@@ -220,7 +228,7 @@ void SPRGBDCOMDataLayer<Dtype>::RGBDImageloadAll(const char* datapath, const cha
 
 		if (ffd.dwFileAttributes == 16 && ffd.cFileName[0] != '.'){
 			printf("%s\n", tBuf);
-			RGBDImageloadAll(tBuf, tdepthBuf);
+			RGBDloadAll_calcCom(tBuf, tdepthBuf);
 		}
 	}
 }
@@ -323,12 +331,6 @@ cv::Mat SPRGBDCOMDataLayer<Dtype>::subBackground(cv::Mat rgb, cv::Mat depth){
 			else			label.at<cv::Vec3b>(i) = cv::Vec3f(0, 0, 0);
 		}
 
-		/*cv::imshow("rgb", rgb);
-		cv::imshow("label", label);
-		cv::imshow("background", backRGB);
-		cv::waitKey(0);*/
-		
-		cv::resize(label, label, cv::Size(labelHeight_, labelWidth_));
 		if (rgb.channels() != 1){
 			cv::cvtColor(label, label, CV_BGR2GRAY);
 		}
