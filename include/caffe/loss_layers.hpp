@@ -823,6 +823,32 @@ protected:
 	Blob<Dtype> diff_;
 };
 
+template <typename Dtype>
+class MDNLossLayer : public LossLayer<Dtype> {
+public:
+	explicit MDNLossLayer(const LayerParameter& param)
+		: LossLayer<Dtype>(param) {}
+	virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
+		const vector<Blob<Dtype>*>& top);
+
+	virtual inline const char* type() const { return "MDNLoss"; }
+
+	virtual inline bool AllowForceBackward(const int bottom_index) const {
+		return true;
+	}
+
+protected:
+	virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+		const vector<Blob<Dtype>*>& top);
+	virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+		const vector<Blob<Dtype>*>& top);
+
+	virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+	virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
+		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+};
+
 }  // namespace caffe
 
 #endif  // CAFFE_LOSS_LAYERS_HPP_
