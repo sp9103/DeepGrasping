@@ -400,6 +400,7 @@ message LayerParameter {
   optional SPsupervisedDataParameter sp_supervised_data_param = 150;
   optional DepthConcatParameter depth_concat_param = 151;
   optional CrumpleParameter crumple_param = 152;
+  optional GMMParameter gmm_param = 153;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1367,4 +1368,11 @@ message CrumpleParameter {
   // Specify the data source.
   optional uint32 mode = 1;
   optional uint32 size = 2;
+}
+
+// Message custom_data_layer parameter
+message GMMParameter {
+  // Specify the data source.
+  optional uint32 class_size = 1;
+  optional uint32 data_dim = 2;
 }

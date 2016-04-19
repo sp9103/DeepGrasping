@@ -242,6 +242,7 @@
     <ClCompile Include="..\..\src\caffe\layers\exp_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\filter_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\flatten_layer.cpp" />
+    <ClCompile Include="..\..\src\caffe\layers\gmm_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\hdf5_data_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\hdf5_output_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\hinge_loss_layer.cpp" />
@@ -383,6 +384,7 @@
     <CudaCompile Include="..\..\src\caffe\layers\euclidean_loss_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\exp_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\filter_layer.cu" />
+    <CudaCompile Include="..\..\src\caffe\layers\gmm_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\hdf5_data_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\hdf5_output_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\im2col_layer.cu" />
