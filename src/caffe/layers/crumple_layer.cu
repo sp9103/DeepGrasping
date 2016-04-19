@@ -12,14 +12,6 @@
 namespace caffe {
 
 template <typename Dtype>
-__global__ void kernel_change_size(const int num, const int rows,
-	const int cols, const Dtype* input,	Dtype* output) {
-	CUDA_KERNEL_LOOP(index, num) {
-
-	}
-}
-
-template <typename Dtype>
 void CrumpleLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
 	const Dtype* bottom_data = bottom[0]->gpu_data();
