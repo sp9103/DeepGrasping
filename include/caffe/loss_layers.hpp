@@ -847,6 +847,13 @@ protected:
 		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 	virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
 		const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+	
+	int class_size;
+	int data_dim;
+
+	Blob<Dtype> diff_;					//(mu-t)
+	Blob<Dtype> diff_square_;			//(mu-t)^2
+	Blob<Dtype> diff_norm_;				//|| mu-t || ^ 2
 };
 
 }  // namespace caffe

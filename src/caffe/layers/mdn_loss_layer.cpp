@@ -18,6 +18,20 @@ void MDNLossLayer<Dtype>::Reshape(
   vector<int> loss_shape(0);  // Loss layers output a scalar; 0 axes.
   top[0]->Reshape(loss_shape);
   
+  data_dim = this->layer_param_.gmm_param().data_dim();
+  class_size = this->layer_param_.gmm_param().class_size();
+
+  vector<int> diff_shape(3);		//[batchsize, class_size, data_dim] matrix
+  diff_shape[0] = bottom[0]->shape()[0];
+  diff_shape[1] = class_size;
+  diff_shape[2] = data_dim;
+  diff_.Reshape(diff_shape);
+  diff_square_.Reshape(diff_shape);
+
+  vector<int> class_dim(2);
+  class_dim[0] = bottom[0]->shape()[0];
+  class_dim[1] = class_size;
+  diff_norm_.Reshape(class_dim);
 }
 
 template <typename Dtype>

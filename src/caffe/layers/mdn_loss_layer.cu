@@ -9,19 +9,30 @@
 
 namespace caffe {
 
+template <typename Dtype>							//mu_ik - tk calculation
+__global__ void kernel_label_subtract(const int count,
+	const int param_size, const int class_size, const int data_dim,
+	const Dtype* data, const Dtype* label, Dtype* diff) {
+	CUDA_KERNEL_LOOP(index, count) {
+		int internal_idx = index % data_dim;
+		int outer_idx = index / data_dim;
+		int label_idx = index / (class_size * data_dim);
+		diff[index] = data[outer_idx * param_size + internal_idx + 1] - label[label_idx * data_dim + internal_idx];
+	}
+}
+
 template <typename Dtype>
 void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
-  //int count = bottom[0]->count();
-  //caffe_gpu_sub(
-  //    count,
-  //    bottom[0]->gpu_data(),
-  //    bottom[1]->gpu_data(),
-  //    diff_.mutable_gpu_data());
-  //Dtype dot;
-  //caffe_gpu_dot(count, diff_.gpu_data(), diff_.gpu_data(), &dot);
-  //Dtype loss = dot / bottom[0]->num() / Dtype(2);
-  //top[0]->mutable_cpu_data()[0] = loss;
+
+	const Dtype* bottom_data = bottom[0]->gpu_data();
+	const Dtype* label = bottom[1]->gpu_data();
+
+	//subtract (mu - t)
+	kernel_label_subtract<Dtype> << <CAFFE_GET_BLOCKS(data_dim*class_size), CAFFE_CUDA_NUM_THREADS >> >(data_dim*class_size,
+		data_dim + 2, class_size, data_dim, bottom_data, label, diff_.mutable_gpu_data());
+
+	//
 }
 
 //Diff 0번지는 값있고 1번지는 없음
