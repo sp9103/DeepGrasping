@@ -17,8 +17,10 @@ __global__ void sigmaExp(const int nthreads, const int param_size, Dtype* const 
 	CUDA_KERNEL_LOOP(index, nthreads) {
 		int vecIdx = index % param_size;
 
-		if (vecIdx == 0 || vecIdx == (param_size - 1))
+		if (vecIdx == 0)						//alpha
 			topdata[index] = exp(topdata[index]);
+		else if(vecIdx == (param_size - 1))		//sigma
+			topdata[index] = exp(-topdata[index]);
 	}
 }
 
@@ -59,7 +61,7 @@ __global__ void kernel_alpha_div(const int count,
 	const Dtype* sum, Dtype* data) {
 	CUDA_KERNEL_LOOP(index, count) {
 		int n = index / class_size;
-		data[index*param_size*class_size] /= sum[n];
+		data[index*param_size] /= sum[n];
 	}
 }
 
@@ -94,11 +96,11 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   //sub alpha max
   kernel_alpha_subtract<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
 
-  //exponential - sigma에 exp를 취하는 것이 문제가 될 수 있음. overflow. ( alpha는 위에서 sub max를 해줌으로 overflow 예방)
+  //exponential - sigma에 exp를 취하는 것이 문제가 될 수 있음. overflow. ( alpha는 위에서 sub max를 해줌으로 overflow 예방) ==> 문제가 있을 경우 1/sigma 를 산출 ==> 1/sigma를 리턴
   sigmaExp<Dtype> << <CAFFE_GET_BLOCKS(datacount), CAFFE_CUDA_NUM_THREADS >> >(datacount, data_dim+2, top_data);
 
   //sum alpha
-  kernel_alpha_sum<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, top_data, maxValue_.mutable_gpu_data());
+  kernel_alpha_sum<Dtype> << <CAFFE_GET_BLOCKS(batchsize), CAFFE_CUDA_NUM_THREADS >> >(batchsize, data_dim + 2, class_size, top_data, maxValue_.mutable_gpu_data());
 
   //div alpha
   kernel_alpha_div<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
