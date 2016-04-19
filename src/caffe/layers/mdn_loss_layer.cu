@@ -7,6 +7,8 @@
 
 #include <opencv2\opencv.hpp>
 
+#define MATH_PI		3.14159265
+
 namespace caffe {
 
 template <typename Dtype>							//mu_ik - tk calculation
@@ -33,6 +35,20 @@ __global__ void kernel_diff_norm(const int count,
 	}
 }
 
+template <typename Dtype>							// alpha * gaussian distribution 계산
+__global__ void kernel_normal_distribution(const int count,
+	const int param_size, const int class_size, const int data_dim,
+	const Dtype* norm, const Dtype* data, Dtype* alpha_distribution) {
+	CUDA_KERNEL_LOOP(index, count) {
+		Dtype alpha = data[index*param_size];
+		Dtype sigma_inverse = data[index*param_size + 1 + data_dim];
+		Dtype exp_gaussian = exp(- norm[index] * sigma_inverse * sigma_inverse / 2);
+		Dtype distribution = pow(sigma_inverse, data_dim) / pow(2 * MATH_PI, data_dim / 2) * exp_gaussian;
+		//alpha * gaussian_distribution;
+		alpha_distribution[index] = alpha * distribution;
+	}
+}
+
 template <typename Dtype>
 void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -49,10 +65,13 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	caffe_gpu_mul(diff_.count(), diff_.gpu_data(), diff_.gpu_data(), diff_square_.mutable_gpu_data());
 
 	//norm  : || mu-t || ^ 2
-	kernel_diff_norm<Dtype> << <CAFFE_GET_BLOCKS(class_size * batch_size), CAFFE_CUDA_NUM_THREADS >> >(class_size * batch_size, class_size, data_dim, diff_square_.gpu_data(), diff_norm_.mutable_gpu_data());
+	kernel_diff_norm<Dtype> << <CAFFE_GET_BLOCKS(class_size * batch_size), CAFFE_CUDA_NUM_THREADS >> >(class_size * batch_size,
+		class_size, data_dim, diff_square_.gpu_data(), diff_norm_.mutable_gpu_data());
 
 	//calculate gaussian distribution
-
+	kernel_normal_distribution<Dtype> << <CAFFE_GET_BLOCKS(class_size * batch_size), CAFFE_CUDA_NUM_THREADS >> >(class_size * batch_size,
+		data_dim + 2, class_size, data_dim,
+		diff_norm_.gpu_data(), bottom_data, alpha_pi_.mutable_gpu_data());
 }
 
 //Diff 0번지는 값있고 1번지는 없음
