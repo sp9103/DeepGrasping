@@ -44,6 +44,26 @@ __global__ void kernel_alpha_subtract(const int count,
 }
 
 template <typename Dtype>
+__global__ void kernel_alpha_sum(const int num, const int param_size, const int class_size, const Dtype* data, Dtype* out) {
+	CUDA_KERNEL_LOOP(index, num) {
+		Dtype sum = 0;
+		for (int i = 0; i < class_size; i++)
+			sum += data[index*class_size*param_size + i*param_size];
+		out[index] = sum;
+	}
+}
+
+template <typename Dtype>
+__global__ void kernel_alpha_div(const int count,
+	const int param_size, const int class_size,
+	const Dtype* sum, Dtype* data) {
+	CUDA_KERNEL_LOOP(index, count) {
+		int n = index / class_size;
+		data[index*param_size*class_size] /= sum[n];
+	}
+}
+
+template <typename Dtype>
 void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->gpu_data();
@@ -78,8 +98,10 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   sigmaExp<Dtype> << <CAFFE_GET_BLOCKS(datacount), CAFFE_CUDA_NUM_THREADS >> >(datacount, data_dim+2, top_data);
 
   //sum alpha
+  kernel_alpha_sum<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, top_data, maxValue_.mutable_gpu_data());
 
   //div alpha
+  kernel_alpha_div<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
 }
 
 template <typename Dtype>
