@@ -32,6 +32,11 @@ void MDNLossLayer<Dtype>::Reshape(
   class_dim[0] = bottom[0]->shape()[0];
   class_dim[1] = class_size;
   diff_norm_.Reshape(class_dim);
+  alpha_pi_.Reshape(class_dim);
+
+  vector<int> batch_dim(1);
+  batch_dim[0] = bottom[0]->shape()[0];
+  alpha_pi_sum_.Reshape(batch_dim);
 }
 
 template <typename Dtype>

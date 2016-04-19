@@ -14,10 +14,22 @@ __global__ void kernel_label_subtract(const int count,
 	const int param_size, const int class_size, const int data_dim,
 	const Dtype* data, const Dtype* label, Dtype* diff) {
 	CUDA_KERNEL_LOOP(index, count) {
-		int internal_idx = index % data_dim;
-		int outer_idx = index / data_dim;
-		int label_idx = index / (class_size * data_dim);
+		int internal_idx = index % data_dim;					//mu vector에서 몇번째 인덱스
+		int outer_idx = index / data_dim;						//몇번째 클래스
+		int label_idx = index / (class_size * data_dim);		//몇번째 label
 		diff[index] = data[outer_idx * param_size + internal_idx + 1] - label[label_idx * data_dim + internal_idx];
+	}
+}
+
+template <typename Dtype>							// || mu-t || ^ 2
+__global__ void kernel_diff_norm(const int count,
+	const int class_size, const int data_dim,
+	const Dtype* diff_squre, Dtype* norm) {
+	CUDA_KERNEL_LOOP(index, count) {
+		Dtype sum = 0;
+		for (int i = 0; i < data_dim; i++)
+			sum += diff_squre[index * data_dim + i];
+		norm[index] = sum;
 	}
 }
 
@@ -27,12 +39,20 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
 	const Dtype* bottom_data = bottom[0]->gpu_data();
 	const Dtype* label = bottom[1]->gpu_data();
+	const int batch_size = bottom[0]->shape()[0];
 
 	//subtract (mu - t)
 	kernel_label_subtract<Dtype> << <CAFFE_GET_BLOCKS(data_dim*class_size), CAFFE_CUDA_NUM_THREADS >> >(data_dim*class_size,
 		data_dim + 2, class_size, data_dim, bottom_data, label, diff_.mutable_gpu_data());
 
-	//
+	//square ( mu - t )^2
+	caffe_gpu_mul(diff_.count(), diff_.gpu_data(), diff_.gpu_data(), diff_square_.mutable_gpu_data());
+
+	//norm  : || mu-t || ^ 2
+	kernel_diff_norm<Dtype> << <CAFFE_GET_BLOCKS(class_size * batch_size), CAFFE_CUDA_NUM_THREADS >> >(class_size * batch_size, class_size, data_dim, diff_square_.gpu_data(), diff_norm_.mutable_gpu_data());
+
+	//calculate gaussian distribution
+
 }
 
 //Diff 0번지는 값있고 1번지는 없음
