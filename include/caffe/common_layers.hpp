@@ -990,6 +990,8 @@ protected:
 	int N_;
 	bool bias_term_;
 	Blob<Dtype> bias_multiplier_;
+
+	Blob<Dtype>	maxValue_;						//softmax의 결과물과 max_value의 결과물
 };
 
 }  // namespace caffe

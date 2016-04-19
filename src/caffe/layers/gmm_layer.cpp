@@ -79,6 +79,11 @@ void GMMLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     bias_multiplier_.Reshape(bias_shape);
     caffe_set(M_, Dtype(1), bias_multiplier_.mutable_cpu_data());
   }
+
+  //allocate softmax temp value
+  vector<int> max_dims = bottom[0]->shape();
+  max_dims[1] = 1;
+  maxValue_.Reshape(max_dims);
 }
 
 template <typename Dtype>

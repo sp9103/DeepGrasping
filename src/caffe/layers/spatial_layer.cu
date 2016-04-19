@@ -187,69 +187,6 @@ void SpatialLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	  count, softmax, softmaxResult_.num(),
 	  tHeight, tWidth, top_data);
 
- // /////////////////////////////////////////////////////////////////////////////////////////////
- // ///softmax 그리기
- // cv::Mat img;
- // int batch_size = softmaxResult_.shape()[0];
- // const int drawRow = 4;
- // char buf[32];
- // Dtype posbox[128]/*, sumbox[32]*/;
- // int width = softmaxResult_.shape()[2];
- // int height = softmaxResult_.shape()[3];
- // int channel = softmaxResult_.shape()[1];
- // img.create(softmaxResult_.shape()[2] * (softmaxResult_.shape()[1] / drawRow), softmaxResult_.shape()[3] * 3 * drawRow, CV_8UC1);
-
- // for (int b = 0; b < batch_size; b++){
- // 	sprintf(buf, "linear_spatial");
-	//cudaMemcpy(posbox, &top[0]->gpu_data()[b * channel * 2], sizeof(Dtype) * channel * 2, cudaMemcpyDeviceToHost);
- // 	//cudaMemcpy(sumbox, &sum_.gpu_data()[b*32], sizeof(Dtype) * 32, cudaMemcpyDeviceToHost);
- // 	for (int i = 0; i < channel; i++){
- // 		Dtype map[109 * 109];
- // 		int s_row = i * 3 / (drawRow*3) * width;
- // 		int s_col = i * 3 % (drawRow*3) * width;
-
-	//	cudaMemcpy(map, &softmaxResult_.gpu_data()[b*channel*width*height + width * height * i], sizeof(Dtype) * width * height, cudaMemcpyDeviceToHost);
- // 		Dtype max = -1;
- // 		Dtype min = 9999;
- // 		Dtype sum = 0;
- // 		Dtype bmax = -1;
- // 		Dtype bmin = 9999;
-
- // 		for (int p = i * 2; p < (i + 1) * 2; p++){
- // 			if (std::isnan(posbox[p]))
- // 				printf("pos error!\n");
- // 		}
-
- // 		for (int j = 0; j < width * height; j++){
- // 			if (max < map[j])		max = map[j];
- // 			if (min > map[j])		min = map[j];
- // 			sum += map[j];
- // 		}
- // 		for (int j = 0; j < width * height; j++){
- // 			img.at<uchar>(s_row + j / width, s_col + j%width + width) = (uchar)((map[j] - min) / (max - min) * 255.f);
- // 			img.at<uchar>(s_row + j / width, s_col + j%width + width * 2) = (uchar)((map[j] - min) / (max - min) * 255.f);
- // 		}
- // 		cudaMemcpy(map, &bottom[0]->gpu_data()[b*channel*width*height + width* height * i], sizeof(Dtype) * width * height, cudaMemcpyDeviceToHost);
-
- // 		for (int j = 0; j < width * height; j++){
- // 			if (bmax < map[j])		bmax = map[j];
- // 			if (bmin > map[j])		bmin = map[j];
- // 		}
- // 		for (int j = 0; j < width * height; j++)
- // 			img.at<uchar>(s_row + j / width, s_col + j%width) = (uchar)((map[j] - bmin) / (bmax - bmin) * 255.f);
- // 		//수직 라인
- // 		cv::line(img, cv::Point(s_col, s_row), cv::Point(s_col, s_row + height), cv::Scalar(255));
- // 		cv::line(img, cv::Point(s_col + width, s_row), cv::Point(s_col + width, s_row + height), cv::Scalar(255));
- // 		cv::line(img, cv::Point(s_col + width * 2, s_row), cv::Point(s_col+ width * 2, s_row + height), cv::Scalar(255));
- // 		//수평 라인
- // 		cv::line(img, cv::Point(s_col, s_row), cv::Point(s_col + 3 * width, s_row), cv::Scalar(255));
- // 		cv::circle(img, cv::Point(s_col + width * 2 + (int)(posbox[2 * i] * width), (int)(s_row + posbox[2 * i + 1] * height)), 3, cv::Scalar(255), -1);
- // 	}
- // 	cv::imshow(buf, img);
- // 	cv::waitKey(0);
- // }
- // /////////////////////////////////////////////////////////////////////////////////////////////////
-
   ////Feature 뿌리기
   ////////if (bottom->size() == 2){
 	 // cv::Mat FeaturePlot;

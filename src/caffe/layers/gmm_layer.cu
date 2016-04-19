@@ -11,12 +11,46 @@
 
 namespace caffe {
 
+//alpha & sigma exponential
+template <typename Dtype>
+__global__ void sigmaExp(const int nthreads, const int param_size, Dtype* const topdata) {
+	CUDA_KERNEL_LOOP(index, nthreads) {
+		int vecIdx = index % param_size;
+
+		if (vecIdx == 0 || vecIdx == (param_size - 1))
+			topdata[index] = exp(topdata[index]);
+	}
+}
+
+template <typename Dtype>
+__global__ void kernel_alpha_max(const int num, const int param_size, const int class_size, const Dtype* data, Dtype* out) {
+	CUDA_KERNEL_LOOP(index, num) {
+		Dtype maxval = -FLT_MAX;
+		for (int i = 0; i < class_size; i++)
+			maxval = max(data[(index*class_size*param_size) + i*param_size], maxval);
+
+		out[index] = maxval;
+	}
+}
+
+template <typename Dtype>
+__global__ void kernel_alpha_subtract(const int count,
+	const int param_size, const int class_size,
+	const Dtype* max, Dtype* data) {
+	CUDA_KERNEL_LOOP(index, count) {
+		int n = index / class_size;
+		data[index*param_size] -= max[n];
+	}
+}
+
 template <typename Dtype>
 void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->gpu_data();
   Dtype* top_data = top[0]->mutable_gpu_data();
   const Dtype* weight = this->blobs_[0]->gpu_data();
+  const int datacount = bottom[0]->count();
+  const int batchsize = bottom[0]->shape()[0];
   if (M_ == 1) {
     caffe_gpu_gemv<Dtype>(CblasNoTrans, N_, K_, (Dtype)1.,
                          weight, bottom_data, (Dtype)0., top_data);
@@ -33,7 +67,19 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   }
 
   //inner product 이후 Gaussian mixture parameter calculate
+  //0: alpha, 1~x : mu, x+1 : sigma 
+  //find alpha max
+  kernel_alpha_max<Dtype> << <CAFFE_GET_BLOCKS(batchsize), CAFFE_CUDA_NUM_THREADS >> >(batchsize, data_dim+2, class_size, top_data, maxValue_.mutable_gpu_data());
 
+  //sub alpha max
+  kernel_alpha_subtract<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
+
+  //exponential - sigma에 exp를 취하는 것이 문제가 될 수 있음. overflow. ( alpha는 위에서 sub max를 해줌으로 overflow 예방)
+  sigmaExp<Dtype> << <CAFFE_GET_BLOCKS(datacount), CAFFE_CUDA_NUM_THREADS >> >(datacount, data_dim+2, top_data);
+
+  //sum alpha
+
+  //div alpha
 }
 
 template <typename Dtype>
