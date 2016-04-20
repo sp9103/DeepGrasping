@@ -71,6 +71,26 @@ __global__ void kernel_posterior_calc(const int count,
 	}
 }
 
+template <typename Dtype>							// backpropagation delta calculation 
+__global__ void kernel_delta_calc(const int count,
+	const int batch_size, const int class_size, const int param_size, const int data_dim, 
+ 	const Dtype* posterior, const Dtype* diff, const Dtype* diff_norm, const Dtype* bottom_data, Dtype* bottom_diff) {
+	CUDA_KERNEL_LOOP(index, count) {
+ 		const int internal_idx = index % param_size;
+		const int class_idx = index / param_size;
+		const Dtype sigma_inverse = bottom_data[class_idx*param_size + param_size - 1];
+		if (internal_idx == 0){							//alpha delta calculate
+			bottom_diff[index] = bottom_data[index] - posterior[class_idx];
+		}
+		else if (internal_idx == param_size - 1){		//sigma delta calculate
+			bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / (sigma_inverse * sigma_inverse)  - data_dim);
+		}
+		else{											//mu delta calculate
+			const int data_idx = internal_idx - 1;
+		}
+	}
+}
+
 template <typename Dtype>
 void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -115,12 +135,15 @@ void MDNLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 			// i == 0 : bottom network i == 1 : label
 			//부호 +- 다시 한번 생각해보기
 			Dtype* bottom_diff = bottom[i]->mutable_gpu_diff();
+			const Dtype* bottom_data = bottom[i]->gpu_data();
 			const int batch_size = bottom[0]->shape()[0];
 			
 			//calculate posterior probability ( alpha*pi / sumation ( alpha_i * pi_i )
 			kernel_posterior_calc<Dtype> << <CAFFE_GET_BLOCKS(batch_size*class_size), CAFFE_CUDA_NUM_THREADS >> >
 				(batch_size*class_size, batch_size, class_size, 
 				alpha_pi_.gpu_data(), alpha_pi_sum_.gpu_data(), posterior_pi_.mutable_gpu_data());
+
+			//calculate bottom diff (alpha_diff, mu_diff, sigma_diff)
 		}
 	}
 }
