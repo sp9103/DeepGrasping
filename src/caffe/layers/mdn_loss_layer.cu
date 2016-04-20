@@ -49,6 +49,18 @@ __global__ void kernel_normal_distribution(const int count,
 	}
 }
 
+template <typename Dtype>							// ∑(alpha * gaussian distribution) 계산
+__global__ void kernel_class_summation(const int count, const int class_size,
+	const Dtype* alpha_pi_, Dtype* alpha_pi_sum_) {
+	CUDA_KERNEL_LOOP(index, count) {
+		Dtype sum = 0;
+		const int batch_idx = index / class_size;
+		for (int i = 0; i < class_size; i++)
+			sum += alpha_pi_[batch_idx * class_size + i];
+		alpha_pi_sum_[index] = sum;
+	}
+}
+
 template <typename Dtype>
 void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -72,26 +84,18 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	kernel_normal_distribution<Dtype> << <CAFFE_GET_BLOCKS(class_size * batch_size), CAFFE_CUDA_NUM_THREADS >> >(class_size * batch_size,
 		data_dim + 2, class_size, data_dim,
 		diff_norm_.gpu_data(), bottom_data, alpha_pi_.mutable_gpu_data());
+
+	//sumation : ∑(alpha * distribution)
+	kernel_class_summation<Dtype> << <CAFFE_GET_BLOCKS(batch_size), CAFFE_CUDA_NUM_THREADS >> >(batch_size, class_size, alpha_pi_.gpu_data(), alpha_pi_sum_.mutable_gpu_data());
+
+	//loss : ln ( sumation ) / number of batchsize
 }
 
 //Diff 0번지는 값있고 1번지는 없음
 template <typename Dtype>
 void MDNLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  //for (int i = 0; i < 2; ++i) {
-	 // if (propagate_down[i]) {
-		//  const Dtype sign = (i == 0) ? 1 : -1;
-		//  const Dtype alpha = sign * top[0]->cpu_diff()[0] / bottom[i]->num();
-		//  //const Dtype alpha = 1.0 / bottom[i]->num();
-		//  Dtype tt = top[0]->cpu_diff()[0];
-		//  caffe_gpu_axpby(
-		//	  bottom[i]->count(),              // count
-		//	  alpha,                              // alpha
-		//	  diff_.gpu_data(),                   // a			//차이값이 diff_에 저장됨
-		//	  Dtype(0),                           // beta
-		//	  bottom[i]->mutable_gpu_diff());  // b
-	 // }
-  //}
+
 }
 
 INSTANTIATE_LAYER_GPU_FUNCS(MDNLossLayer);
