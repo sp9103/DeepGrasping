@@ -70,7 +70,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	const int batch_size = bottom[0]->shape()[0];
 
 	//subtract (mu - t)
-	kernel_label_subtract<Dtype> << <CAFFE_GET_BLOCKS(data_dim*class_size), CAFFE_CUDA_NUM_THREADS >> >(data_dim*class_size,
+	kernel_label_subtract<Dtype> << <CAFFE_GET_BLOCKS(diff_.count()), CAFFE_CUDA_NUM_THREADS >> >(diff_.count(),
 		data_dim + 2, class_size, data_dim, bottom_data, label, diff_.mutable_gpu_data());
 
 	//square ( mu - t )^2
@@ -80,7 +80,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	kernel_diff_norm<Dtype> << <CAFFE_GET_BLOCKS(class_size * batch_size), CAFFE_CUDA_NUM_THREADS >> >(class_size * batch_size,
 		class_size, data_dim, diff_square_.gpu_data(), diff_norm_.mutable_gpu_data());
 
-	//calculate gaussian distribution
+	//calculate gaussian distribution * alpha
 	kernel_normal_distribution<Dtype> << <CAFFE_GET_BLOCKS(class_size * batch_size), CAFFE_CUDA_NUM_THREADS >> >(class_size * batch_size,
 		data_dim + 2, class_size, data_dim,
 		diff_norm_.gpu_data(), bottom_data, alpha_pi_.mutable_gpu_data());
