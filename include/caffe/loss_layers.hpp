@@ -858,6 +858,7 @@ protected:
 	Blob<Dtype> alpha_pi_sum_;			//alpha_0 * distribution_0 + ... + alpha_m * distribution_m
 	Blob<Dtype> batch_loss_;			//each batch loss
 	Blob<Dtype> sum_multiplier_;		//dot product summation
+	Blob<Dtype> posterior_pi_;			//posterior probability
 };
 
 }  // namespace caffe

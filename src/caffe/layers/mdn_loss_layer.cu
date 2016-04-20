@@ -18,7 +18,7 @@ __global__ void kernel_label_subtract(const int count,
 	CUDA_KERNEL_LOOP(index, count) {
 		int internal_idx = index % data_dim;					//mu vector에서 몇번째 인덱스
 		int outer_idx = index / data_dim;						//몇번째 클래스
-		int label_idx = index / (class_size * data_dim);		//몇번째 label
+		int label_idx = index / (class_size * data_dim);		//몇번째 label == 몇번째 batch
 		diff[index] = data[outer_idx * param_size + internal_idx + 1] - label[label_idx * data_dim + internal_idx];
 	}
 }
@@ -42,7 +42,7 @@ __global__ void kernel_normal_distribution(const int count,
 	CUDA_KERNEL_LOOP(index, count) {
 		Dtype alpha = data[index*param_size];
 		Dtype sigma_inverse = data[index*param_size + 1 + data_dim];
-		Dtype exp_gaussian = exp(- norm[index] * sigma_inverse * sigma_inverse / 2);
+		Dtype exp_gaussian = exp(- norm[index] * (sigma_inverse * sigma_inverse) / 2);
 		Dtype distribution = pow(sigma_inverse, data_dim) / pow(2 * MATH_PI, data_dim / 2) * exp_gaussian;
 		//alpha * gaussian_distribution;
 		alpha_distribution[index] = alpha * distribution;
@@ -58,6 +58,16 @@ __global__ void kernel_class_summation(const int count, const int class_size,
 		for (int i = 0; i < class_size; i++)
 			sum += alpha_pi_[batch_idx * class_size + i];
 		alpha_pi_sum_[index] = sum;
+	}
+}
+
+template <typename Dtype>							// posterior calculation 
+__global__ void kernel_posterior_calc(const int count,
+	const int batch_size, const int class_size,
+	const Dtype* alpha_pi_, const Dtype* alpha_pi_sum_, Dtype* posterior) {
+	CUDA_KERNEL_LOOP(index, count) {
+		const int batch_idx = index / class_size;
+		posterior[index] = alpha_pi_[index] / alpha_pi_sum_[batch_idx * class_size];
 	}
 }
 
@@ -100,7 +110,19 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 template <typename Dtype>
 void MDNLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 	const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-
+	for (int i = 0; i < 2; ++i) {
+		if (propagate_down[i]) {
+			// i == 0 : bottom network i == 1 : label
+			//부호 +- 다시 한번 생각해보기
+			Dtype* bottom_diff = bottom[i]->mutable_gpu_diff();
+			const int batch_size = bottom[0]->shape()[0];
+			
+			//calculate posterior probability ( alpha*pi / sumation ( alpha_i * pi_i )
+			kernel_posterior_calc<Dtype> << <CAFFE_GET_BLOCKS(batch_size*class_size), CAFFE_CUDA_NUM_THREADS >> >
+				(batch_size*class_size, batch_size, class_size, 
+				alpha_pi_.gpu_data(), alpha_pi_sum_.gpu_data(), posterior_pi_.mutable_gpu_data());
+		}
+	}
 }
 
 INSTANTIATE_LAYER_GPU_FUNCS(MDNLossLayer);
