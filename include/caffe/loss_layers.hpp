@@ -856,6 +856,8 @@ protected:
 	Blob<Dtype> diff_norm_;				//|| mu-t || ^ 2
 	Blob<Dtype> alpha_pi_;				//gaussian distribution -> alpha*distribution - > pi( alpha*distribution / alpha_pi_sum_ )
 	Blob<Dtype> alpha_pi_sum_;			//alpha_0 * distribution_0 + ... + alpha_m * distribution_m
+	Blob<Dtype> batch_loss_;			//each batch loss
+	Blob<Dtype> sum_multiplier_;		//dot product summation
 };
 
 }  // namespace caffe

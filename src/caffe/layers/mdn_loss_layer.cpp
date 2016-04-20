@@ -37,6 +37,11 @@ void MDNLossLayer<Dtype>::Reshape(
   vector<int> batch_dim(1);
   batch_dim[0] = bottom[0]->shape()[0];
   alpha_pi_sum_.Reshape(batch_dim);
+  batch_loss_.Reshape(batch_dim);
+  sum_multiplier_.Reshape(batch_dim);
+
+  Dtype* multiplier_data = sum_multiplier_.mutable_cpu_data();
+  caffe_set(sum_multiplier_.count(), Dtype(1), multiplier_data);
 }
 
 template <typename Dtype>

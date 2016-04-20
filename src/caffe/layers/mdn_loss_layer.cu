@@ -89,6 +89,11 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	kernel_class_summation<Dtype> << <CAFFE_GET_BLOCKS(batch_size), CAFFE_CUDA_NUM_THREADS >> >(batch_size, class_size, alpha_pi_.gpu_data(), alpha_pi_sum_.mutable_gpu_data());
 
 	//loss : ln ( sumation ) / number of batchsize
+	Dtype loss;
+	caffe_gpu_log(alpha_pi_sum_.count(), alpha_pi_sum_.gpu_data(), batch_loss_.mutable_gpu_data());
+	caffe_gpu_dot(batch_loss_.count(), batch_loss_.gpu_data(), sum_multiplier_.gpu_data(), &loss);
+	loss /= bottom[0]->num();
+	top[0]->mutable_cpu_data()[0] = loss;
 }
 
 //Diff 0번지는 값있고 1번지는 없음
