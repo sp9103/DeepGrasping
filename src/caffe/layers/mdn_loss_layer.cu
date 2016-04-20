@@ -86,7 +86,9 @@ __global__ void kernel_delta_calc(const int count,
 			bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / (sigma_inverse * sigma_inverse)  - data_dim);
 		}
 		else{											//mu delta calculate
-			const int data_idx = internal_idx - 1;
+			const int data_idx = internal_idx - 1;		//[0, datadim-1]
+			Dtype diff_ik = diff[data_dim * class_idx + data_idx];
+			bottom_diff[index] = posterior[class_idx] * ( diff_ik / (sigma_inverse * sigma_inverse));
 		}
 	}
 }
@@ -144,6 +146,9 @@ void MDNLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 				alpha_pi_.gpu_data(), alpha_pi_sum_.gpu_data(), posterior_pi_.mutable_gpu_data());
 
 			//calculate bottom diff (alpha_diff, mu_diff, sigma_diff)
+			kernel_delta_calc<Dtype> << <CAFFE_GET_BLOCKS(bottom[i]->count()), CAFFE_CUDA_NUM_THREADS >> >(bottom[i]->count(),
+				batch_size, class_size, data_dim + 2, data_dim, 
+				posterior_pi_.gpu_data(), diff_.gpu_data(), diff_norm_.gpu_data(), bottom_data, bottom_diff);
 		}
 	}
 }
