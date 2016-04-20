@@ -67,7 +67,7 @@ __global__ void kernel_posterior_calc(const int count,
 	const Dtype* alpha_pi_, const Dtype* alpha_pi_sum_, Dtype* posterior) {
 	CUDA_KERNEL_LOOP(index, count) {
 		const int batch_idx = index / class_size;
-		posterior[index] = alpha_pi_[index] / alpha_pi_sum_[batch_idx * class_size];
+		posterior[index] = alpha_pi_[index] / alpha_pi_sum_[batch_idx];
 	}
 }
 
