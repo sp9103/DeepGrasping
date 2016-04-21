@@ -152,6 +152,39 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 
 				if (GraspFileName[0] == '.')
 					continue;
+
+				char GraspDataFile[256],GraspImageFile[256], GraspDepthFile[256], GraspCOMFile[256];
+				int imgCount = image_blob.size();
+				FILE *fp;
+				int filePathLen;
+				//Grasping pos 읽어오기
+				strcpy(GraspDataFile, GraspPosDir);
+				filePathLen = strlen(GraspDataFile);
+				GraspDataFile[filePathLen-1] = '\0';
+				strcat(GraspDataFile, GraspFileName);
+				fp = fopen(GraspDataFile, "r");
+				while (!feof(fp)){
+					//upper Left, Upper Right, Thumb
+					cv::Mat posMat(9, 1, CV_32FC1);
+					float tempFloat;
+					fscanf(fp, "%f %f %f ", &posMat.at<float>(0), &posMat.at<float>(1), &posMat.at<float>(2));
+					fscanf(fp, "%f %f %f ", &posMat.at<float>(3), &posMat.at<float>(4), &posMat.at<float>(5));
+					fscanf(fp, "%f %f %f\n", &posMat.at<float>(6), &posMat.at<float>(7), &posMat.at<float>(8));
+					//fscanf(fp, "%f %f %f " &tempFloat, &tempFloat, &tempFloat);
+					//fscanf(fp, "%f %f %f " &tempFloat, &tempFloat, &tempFloat);
+					////fscanf(fp, "%f %f %f\n" &posMat.at<float>(6), &posMat.at<float>(7), &posMat.at<float>(8));
+
+					std::pair<int, cv::Mat> tempPair;
+					tempPair.first = imgCount;
+					tempPair.second = posMat.clone();
+					pos_blob.push_back(tempPair);
+				}
+				fclose(fp);
+
+				//RGB 읽어오기
+
+				if ((data_limit_ != 0) && data_limit_ <= pos_blob.size())
+					break;
 			}
 
 		}
@@ -236,9 +269,6 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 	//			}
 	//		}
 	//	}
-
-		if ((data_limit_ != 0) && data_limit_ <= pos_blob.size())
-			break;
 
 	//	if (ffd.dwFileAttributes == 16 && ffd.cFileName[0] != '.'){
 	//		printf("%s\n", tBuf);
