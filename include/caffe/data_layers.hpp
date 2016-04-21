@@ -508,6 +508,57 @@ protected:
 	int dataidx;
 };
 
+/**
+* @brief Provides data to the Net from memory.
+*
+* TODO(dox): thorough documentation for Forward and proto params.
+*/
+//image, depth, pregrasping pos, COM 
+template <typename Dtype>
+class PreGraspDataLayer : public BaseDataLayer<Dtype> {
+public:
+	explicit PreGraspDataLayer(const LayerParameter& param)
+		: BaseDataLayer<Dtype>(param) {}
+	virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
+		const vector<Blob<Dtype>*>& top);
+
+	virtual inline const char* type() const { return "PreGraspData"; }
+	virtual inline int ExactNumBottomBlobs() const { return 0; }
+
+	// Reset should accept const pointers, but can't, because the memory
+	//  will be given to Blob, which is mutable
+	void Reset(Dtype* data, Dtype* label, int n);
+	void set_batch_size(int new_size);
+
+	int batch_size() { return batch_size_; }
+	int channels() { return channels_; }
+	int height() { return height_; }
+	int width() { return width_; }
+	int data_limit() { return data_limit_; }
+
+protected:
+	virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+		const vector<Blob<Dtype>*>& top);
+
+	void RGBDloadAll_calcCom(const char* datapath, const char* depthpath);
+	bool fileTypeCheck(char *fileName);
+	void makeRandbox(int *arr, int size);
+
+	int batch_size_, channels_, height_, width_, size_;
+	int n_;
+	int data_limit_;
+
+	std::string data_path_;
+
+	std::vector<cv::Mat> image_blob;		//rgb image
+	std::vector<cv::Mat> depth_blob;		//depth image
+	std::vector<cv::Mat> com_blob;			//center of mass blob
+	std::vector<cv::Mat> pos_blob;			//pregrasping pos
+
+	int *randbox;
+	int dataidx;
+};
+
 //MNIST LOADER
 template <typename Dtype>
 class MNISTDataLayer : public BaseDataLayer<Dtype> {
