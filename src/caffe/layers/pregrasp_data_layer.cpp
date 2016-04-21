@@ -197,10 +197,31 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 
 				//Depth 읽어오기
 				sprintf(GraspDepthFile, "%s\\DEPTH\\%s", tBuf, GraspFileName);
+				int depthwidth, depthheight, depthType;
 				filePathLen = strlen(GraspDepthFile);
 				GraspDepthFile[filePathLen - 1] = 'n';
 				GraspDepthFile[filePathLen - 2] = 'i';
 				GraspDepthFile[filePathLen - 3] = 'b';
+				fp = fopen(GraspDepthFile, "rb");
+				fread(&depthwidth, sizeof(int), 1, fp);
+				fread(&depthheight, sizeof(int), 1, fp);
+				fread(&depthType, sizeof(int), 1, fp);
+				cv::Mat depthMap(depthheight, depthwidth, depthType);
+				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+				depth_blob.push_back(depthMap.clone());
+				fclose(fp);
+
+				//COM 읽어오기
+				sprintf(GraspCOMFile, "%s\\COM\\%s", tBuf, GraspFileName);
+				filePathLen = strlen(GraspCOMFile);
+				GraspCOMFile[filePathLen - 1] = 't';
+				GraspCOMFile[filePathLen - 2] = 'x';
+				GraspCOMFile[filePathLen - 3] = 't';
+				fp = fopen(GraspCOMFile, "r");
+				cv::Mat comMat(3, 1, CV_32FC1);
+				fscanf(fp, "%f %f %f", &comMat.at<float>(0), &comMat.at<float>(1), &comMat.at<float>(2));
+				com_blob.push_back(comMat.clone());
+				fclose(fp);
 
 				if ((data_limit_ != 0) && data_limit_ <= pos_blob.size())
 					break;
