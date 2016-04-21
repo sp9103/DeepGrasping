@@ -550,10 +550,10 @@ protected:
 
 	std::string data_path_;
 
-	std::vector<cv::Mat> image_blob;		//rgb image
-	std::vector<cv::Mat> depth_blob;		//depth image
-	std::vector<cv::Mat> com_blob;			//center of mass blob
-	std::vector<cv::Mat> pos_blob;			//pregrasping pos
+	std::vector<cv::Mat> image_blob;						//rgb image
+	std::vector<cv::Mat> depth_blob;						//depth image
+	std::vector<cv::Mat> com_blob;							//center of mass blob
+	std::vector<std::pair<int, cv::Mat>> pos_blob;			//pregrasping pos (image idx, pos)
 
 	int *randbox;
 	int dataidx;

@@ -79,25 +79,34 @@ void PreGraspDataLayer<Dtype>::set_batch_size(int new_size) {
 template <typename Dtype>
 void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
-	/*Dtype* label = top[1]->mutable_cpu_data();
-	Dtype* data = top[0]->mutable_cpu_data();*/
+	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
+	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
+	Dtype* com_data = top[2]->mutable_cpu_data();					//[2] COM
+	Dtype* pos_data = top[3]->mutable_cpu_data();					//[3] Pregrasping postion (label)
 
 	for (int i = 0; i < batch_size_; i++){
-		////RGB 로드
-		//cv::Mat srcImg = this->data_blob.at(randbox[dataidx]);
-		//cv::Mat labelImg = this->label_blob.at(randbox[dataidx]);
+		//RGB 로드
+		int idx = this->pos_blob.at(randbox[dataidx]).first;
+		cv::Mat	rgbImg = this->image_blob.at(idx);
+		cv::Mat depthImg = this->depth_blob.at(idx);
+		cv::Mat com = this->com_blob.at(idx);
+		cv::Mat pos = this->pos_blob.at(randbox[dataidx]).second;
 
-		//caffe_copy(channels_ * height_ * width_, srcImg.ptr<Dtype>(0), data);
-		//caffe_copy(2, labelImg.ptr<Dtype>(0), label);
+		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
+		caffe_copy(height_ * width_, depthImg.ptr<Dtype>(0), depth_data);
+		caffe_copy(3, com.ptr<Dtype>(0), com_data);
+		caffe_copy(9, pos.ptr<Dtype>(0), pos_data);
 
-		//label += top[1]->offset(1);
-		//data += top[0]->offset(1);
-		//if (dataidx + 1 >= this->data_blob.size()){
-		//	makeRandbox(randbox, this->data_blob.size());
-		//	dataidx = 0;
-		//}
-		//else
-		//	dataidx++;
+		rgb_data += top[0]->offset(1);
+		depth_data += top[1]->offset(1);
+		com_data += top[1]->offset(1);
+		pos_data += top[1]->offset(1);
+		if (dataidx + 1 >= this->pos_blob.size()){
+			makeRandbox(randbox, this->pos_blob.size());
+			dataidx = 0;
+		}
+		else
+			dataidx++;
 	}
 }
 
