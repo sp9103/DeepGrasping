@@ -12,8 +12,7 @@ namespace caffe {
 	template <typename Dtype>
 	void DepthConcatLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
-		//const int num_output = this->layer_param_.spatial_param().num_output();
-		const int num_output = bottom[1]->shape()[1] * 3 / 2;
+		const int num_output = bottom[0]->shape()[1] * 3 / 2;
 		N_ = num_output;
 		const int axis = bottom[0]->CanonicalAxisIndex(
 			this->layer_param_.spatial_param().axis());

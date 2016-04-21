@@ -30,7 +30,6 @@ void PreGraspDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom
       "batch_size, channels, height, and width must be specified and"
       " positive in memory_data_param";
 
-  int tSize = 2;
   top[0]->Reshape(batch_size_, channels_, height_, width_);					//[0] RGB
   std::vector<int> depth_dim(3);
   depth_dim[0] = batch_size_;
@@ -85,21 +84,39 @@ void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 	for (int i = 0; i < batch_size_; i++){
 		//RGB ·Îµå
-		int idx = this->pos_blob.at(randbox[dataidx]).first;
+		std::pair<int, cv::Mat> posPair = this->pos_blob.at(randbox[dataidx]);
+		int idx = posPair.first;
 		cv::Mat	rgbImg = this->image_blob.at(idx);
-		cv::Mat depthImg = this->depth_blob.at(idx);
+		cv::Mat depthImg = this->depth_blob.at(idx).clone();
 		cv::Mat com = this->com_blob.at(idx);
-		cv::Mat pos = this->pos_blob.at(randbox[dataidx]).second;
+		cv::Mat pos = posPair.second.clone();
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
 		caffe_copy(height_ * width_, depthImg.ptr<Dtype>(0), depth_data);
 		caffe_copy(3, com.ptr<Dtype>(0), com_data);
 		caffe_copy(9, pos.ptr<Dtype>(0), pos_data);
 
+		///////////////////////////
+		//cv::Mat tempMat;
+		//tempMat.create(height_, width_, CV_32FC3);
+		//int tidx = 0;
+		//for (int c = 0; c < 3; c++){
+		//	for (int h = 0; h < height_; h++){
+		//		for (int w = 0; w < width_; w++){
+		//			tempMat.at<cv::Vec3f>(h, w)[c] = (float)rgb_data[tidx++];
+		//		}
+		//	}
+		//}
+		//cv::Mat tempDepth(height_, width_, CV_32FC1);
+		//for (int i = 0; i < height_*width_; i++)	tempDepth.at<float>(i) = depth_data[i] / (8000 / 256) / 255.f;
+		//cv::imshow("rgb", tempMat);
+		//cv::imshow("depth", tempDepth);
+		//cv::waitKey(0);
+
 		rgb_data += top[0]->offset(1);
 		depth_data += top[1]->offset(1);
-		com_data += top[1]->offset(1);
-		pos_data += top[1]->offset(1);
+		com_data += top[2]->offset(1);
+		pos_data += top[3]->offset(1);
 		if (dataidx + 1 >= this->pos_blob.size()){
 			makeRandbox(randbox, this->pos_blob.size());
 			dataidx = 0;
@@ -126,7 +143,7 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 		StringCchLength(subDir, MAX_PATH, &len);
 		subDir[len - 1] = '\0';
 		StringCchCat(subDir, MAX_PATH, ffd.cFileName);
-		char tBuf[MAX_PATH], tdepthBuf[MAX_PATH];
+		char tBuf[MAX_PATH];
 		WideCharToMultiByte(CP_ACP, 0, subDir, MAX_PATH, tBuf, MAX_PATH, NULL, NULL);
 
 		//Tchar to char
@@ -135,7 +152,6 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 		printf("Object : %s load.\n", ccFileName);
 
 		if (ccFileName[0] != '.' && strcmp("background", ccFileName)){
-			strcat(tBuf, ccFileName);
 			WIN32_FIND_DATA class_ffd;
 			TCHAR szGraspDir[MAX_PATH] = { 0, };
 			HANDLE hGraspFind = INVALID_HANDLE_VALUE;
@@ -149,7 +165,7 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 				char GraspFileName[256];
 				size_t Grasplen;
 				StringCchLength(class_ffd.cFileName, MAX_PATH, &Grasplen);
-				WideCharToMultiByte(CP_ACP, 0, class_ffd.cFileName, Grasplen, GraspFileName, 256, NULL, NULL);
+				WideCharToMultiByte(CP_ACP, 0, class_ffd.cFileName, 256, GraspFileName, 256, NULL, NULL);
 
 				if (GraspFileName[0] == '.')
 					continue;

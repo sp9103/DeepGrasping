@@ -41,7 +41,7 @@ layer {
 layer {
   name: "conv1"
   type: "Convolution"
-  bottom: "data"
+  bottom: "RGB"
   top: "conv1"
   param {
     lr_mult: 1
@@ -184,7 +184,7 @@ layer {
   name: "spatial"
   type: "Spatial"
   bottom: "conv3"
-  bottom: "data"
+  bottom: "RGB"
   top: "spatial1"
   spatial_param{
 	alpha: 4
@@ -194,14 +194,14 @@ layer {
   name: "depth_concat"
   type: "DepthConcat"
   bottom: "spatial1"
-  bottom: "depth"
+  bottom: "Depth"
   top: "concat"
 }
 layer {
   name: "fc_temp"
   type: "InnerProduct"
   bottom: "spatial1"
-  top: "fc1"
+  top: "fc_temp"
   param {
     lr_mult: 1
     #decay_mult: 1
