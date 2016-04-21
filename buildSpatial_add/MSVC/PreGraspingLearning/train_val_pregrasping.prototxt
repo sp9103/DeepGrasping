@@ -193,12 +193,12 @@ layer {
 layer {
   name: "depth_concat"
   type: "DepthConcat"
-  bottom: "depth"
   bottom: "spatial1"
+  bottom: "depth"
   top: "concat"
 }
 layer {
-  name: "fc1"
+  name: "fc_temp"
   type: "InnerProduct"
   bottom: "spatial1"
   top: "fc1"
@@ -213,7 +213,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 2
+    num_output: 9
     weight_filler {
       type: "gaussian"
       std: 0.005
@@ -227,8 +227,8 @@ layer {
 layer {
   name: "EuclideanLoss"
   type: "EuclideanLoss"
-  bottom: "fc1"
-  bottom: "label"
+  bottom: "fc_temp"
+  bottom: "Position"
   top: "l2_error"
   loss_weight: 1
 }
