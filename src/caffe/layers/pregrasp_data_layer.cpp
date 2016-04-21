@@ -170,9 +170,6 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 					fscanf(fp, "%f %f %f ", &posMat.at<float>(0), &posMat.at<float>(1), &posMat.at<float>(2));
 					fscanf(fp, "%f %f %f ", &posMat.at<float>(3), &posMat.at<float>(4), &posMat.at<float>(5));
 					fscanf(fp, "%f %f %f\n", &posMat.at<float>(6), &posMat.at<float>(7), &posMat.at<float>(8));
-					//fscanf(fp, "%f %f %f " &tempFloat, &tempFloat, &tempFloat);
-					//fscanf(fp, "%f %f %f " &tempFloat, &tempFloat, &tempFloat);
-					////fscanf(fp, "%f %f %f\n" &posMat.at<float>(6), &posMat.at<float>(7), &posMat.at<float>(8));
 
 					std::pair<int, cv::Mat> tempPair;
 					tempPair.first = imgCount;
@@ -182,6 +179,28 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 				fclose(fp);
 
 				//RGB 읽어오기
+				sprintf(GraspImageFile, "%s\\RGB\\%s", tBuf, GraspFileName);
+				filePathLen = strlen(GraspImageFile);
+				GraspImageFile[filePathLen - 1] = 'p';
+				GraspImageFile[filePathLen - 2] = 'm';
+				GraspImageFile[filePathLen - 3] = 'b';
+				cv::Mat rgb = cv::imread(GraspImageFile);
+				cv::Mat tempdataMat(height_, width_, CV_32FC3);
+				for (int h = 0; h < rgb.rows; h++){
+					for (int w = 0; w < rgb.cols; w++){
+						for (int c = 0; c < rgb.channels(); c++){
+							tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)rgb.at<cv::Vec3b>(h, w)[c] / 255.0f;
+						}
+					}
+				}
+				image_blob.push_back(tempdataMat.clone());
+
+				//Depth 읽어오기
+				sprintf(GraspDepthFile, "%s\\DEPTH\\%s", tBuf, GraspFileName);
+				filePathLen = strlen(GraspDepthFile);
+				GraspDepthFile[filePathLen - 1] = 'n';
+				GraspDepthFile[filePathLen - 2] = 'i';
+				GraspDepthFile[filePathLen - 3] = 'b';
 
 				if ((data_limit_ != 0) && data_limit_ <= pos_blob.size())
 					break;
