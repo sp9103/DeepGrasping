@@ -877,13 +877,6 @@ protected:
 	int M_;
 	int K_;
 	int N_;
-	int alpha_;
-
-	std::string background_path_;
-	Blob<Dtype> BackGround_;
-
-	Blob<Dtype> sub_img_;
-	Blob<Dtype> depth_info_;
 };
 
 //Crumple Layer

@@ -132,6 +132,7 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 		//Tchar to char
 		char ccFileName[256];
 		WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, len, ccFileName, 256, NULL, NULL);
+		printf("Object : %s load.\n", ccFileName);
 
 		if (ccFileName[0] != '.' && strcmp("background", ccFileName)){
 			strcat(tBuf, ccFileName);
@@ -144,7 +145,7 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, GraspPosDir, strlen(GraspPosDir), szGraspDir, MAX_PATH);
 			hGraspFind = FindFirstFile(szGraspDir, &class_ffd);
 
-			while(FindNextFile(hGraspFind, &class_ffd) != 0){
+			while (FindNextFile(hGraspFind, &class_ffd) != 0){
 				char GraspFileName[256];
 				size_t Grasplen;
 				StringCchLength(class_ffd.cFileName, MAX_PATH, &Grasplen);
@@ -153,14 +154,14 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 				if (GraspFileName[0] == '.')
 					continue;
 
-				char GraspDataFile[256],GraspImageFile[256], GraspDepthFile[256], GraspCOMFile[256];
+				char GraspDataFile[256], GraspImageFile[256], GraspDepthFile[256], GraspCOMFile[256];
 				int imgCount = image_blob.size();
 				FILE *fp;
 				int filePathLen;
 				//Grasping pos 읽어오기
 				strcpy(GraspDataFile, GraspPosDir);
 				filePathLen = strlen(GraspDataFile);
-				GraspDataFile[filePathLen-1] = '\0';
+				GraspDataFile[filePathLen - 1] = '\0';
 				strcat(GraspDataFile, GraspFileName);
 				fp = fopen(GraspDataFile, "r");
 				while (!feof(fp)){
@@ -228,92 +229,6 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 			}
 
 		}
-
-	//	if (!strcmp(ccFileName, "RGB")){
-	//		WideCharToMultiByte(CP_ACP, 0, subDepthDir, MAX_PATH, tdepthBuf, MAX_PATH, NULL, NULL);
-	//		strcat(tdepthBuf, "DEPTHMAP");
-	//	}
-	//	else{
-	//		StringCchCat(subDepthDir, MAX_PATH, ffd.cFileName);
-	//		WideCharToMultiByte(CP_ACP, 0, subDepthDir, MAX_PATH, tdepthBuf, MAX_PATH, NULL, NULL);
-	//	}
-
-	//	if (!strcmp(ccFileName, "DEPTHMAP") || !strcmp(ccFileName, "XYZMAP"))		continue;
-
-	//	if (fileTypeCheck(ccFileName)){
-	//		cv::Mat dataimage;
-	//		cv::Mat labelimage;
-	//		cv::Mat depthMap;
-
-	//		cv::Mat tempdataMat;
-	//		cv::Mat templabelMat;
-	//		
-	//		//tempdataMat.create(height_, width_, CV_32FC4);
-	//		tempdataMat.create(height_, width_, CV_32FC3);
-	//		templabelMat.create(2, 1, CV_32FC1);
-
-	//		dataimage = cv::imread(tBuf);
-
-	//		//Depth 열고 넣어주기
-	//		int depthpathlen = strlen(tdepthBuf);
-	//		int depthwidth, depthheight, depthType;
-	//		tdepthBuf[depthpathlen - 3] = 'b';
-	//		tdepthBuf[depthpathlen - 2] = 'i';
-	//		tdepthBuf[depthpathlen - 1] = 'n';
-	//		FILE *fp = fopen(tdepthBuf, "rb");
-	//		fread(&depthwidth, sizeof(int), 1, fp);
-	//		fread(&depthheight, sizeof(int), 1, fp);
-	//		fread(&depthType, sizeof(int), 1, fp);
-	//		depthMap.create(depthheight, depthwidth, depthType);
-	//		for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
-	//		fclose(fp);
-
-	//		if (height_ != dataimage.rows || width_ != dataimage.cols)
-	//			cv::resize(dataimage, dataimage, cv::Size(height_, width_));
-	//		labelimage = subBackground(dataimage, depthMap);
-
-	//		for (int r = 0; r < 4; r++){
-	//			cv::transpose(dataimage, dataimage);
-	//			cv::flip(dataimage, dataimage, 1);
-	//			cv::transpose(labelimage, labelimage);
-	//			cv::flip(labelimage, labelimage, 1);
-
-	//			if (dataimage.rows == height_ && dataimage.cols == width_){
-	//				for (int h = 0; h < dataimage.rows; h++){
-	//					for (int w = 0; w < dataimage.cols; w++){
-	//						for (int c = 0; c < dataimage.channels(); c++){
-	//							tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)dataimage.at<cv::Vec3b>(h, w)[c] / 255.0f;
-	//						}
-	//					}
-	//				}
-	//				cv::Point2f objPos = cv::Point2f(0, 0);
-	//				int objpixelcount = 0;
-	//				for (int h = 0; h < labelimage.rows; h++){
-	//					for (int w = 0; w < labelimage.cols; w++){
-	//						uchar val = labelimage.at<uchar>(h, w);
-	//						if (val > 0){
-	//							objPos.x += w;
-	//							objPos.y += h;
-	//							objpixelcount++;
-	//						}
-	//					}
-	//				}
-	//				objPos.x /= objpixelcount;
-	//				objPos.y /= objpixelcount;
-
-	//				templabelMat.at<float>(0) = objPos.x;
-	//				templabelMat.at<float>(1) = objPos.y;
-
-	//				data_blob.push_back(tempdataMat.clone());
-	//				label_blob.push_back(templabelMat.clone());
-	//			}
-	//		}
-	//	}
-
-	//	if (ffd.dwFileAttributes == 16 && ffd.cFileName[0] != '.'){
-	//		printf("%s\n", tBuf);
-	//		RGBDloadAll_calcCom(tBuf, tdepthBuf);
-	//	}
 	}
 }
 

@@ -1,9 +1,11 @@
 name: "Unsupervised_TNet"
 layer {
   name: "data"
-  type: "SPRGBDCOMData"
-  top: "data"
-  top: "label"
+  type: "PreGraspData"
+  top: "RGB"
+  top: "Depth"
+  top: "COM"
+  top: "Position"
   include {
     phase: TRAIN
   }
@@ -12,16 +14,18 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/RGBDData/UnsupervisedLearning"
+    data_path : "D:/PreGraspingData"
  
-    data_limit : 110
+    #data_limit : 110
   }
 }
 layer {
   name: "data"
-  type: "SPRGBDCOMData"
-  top: "data"
-  top: "label"
+  type: "PreGraspData"
+  top: "RGB"
+  top: "Depth"
+  top: "COM"
+  top: "Position"
   include {
     phase: TEST
   }
@@ -30,7 +34,7 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/RGBDData/UnsupervisedLearning"
+    data_path : "D:/PreGraspingData"
     data_limit : 1
   }
 }
@@ -185,6 +189,13 @@ layer {
   spatial_param{
 	alpha: 4
   }
+}
+layer {
+  name: "depth_concat"
+  type: "DepthConcat"
+  bottom: "depth"
+  bottom: "spatial1"
+  top: "concat"
 }
 layer {
   name: "fc1"
