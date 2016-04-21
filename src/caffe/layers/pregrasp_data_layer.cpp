@@ -45,9 +45,8 @@ void PreGraspDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom
   top[3]->Reshape(pos_dim);													//[3] Pregrasping postion (label)
 
   //전체 로드
-  /*RGBDloadAll_calcCom(data_path_.c_str(), data_path_.c_str());
-  CHECK_EQ(data_blob.size(), label_blob.size()) << "data size != label size";
-  CHECK_GT(data_blob.size(), 0) << "data is empty";*/
+  PreGrasp_DataLoadAll(data_path_.c_str());
+  CHECK_GT(pos_blob.size(), 0) << "data is empty";
 
   //랜덤 박스 생성
   srand(time(NULL));
@@ -111,35 +110,51 @@ void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void PreGraspDataLayer<Dtype>::RGBDloadAll_calcCom(const char* datapath, const char* depthpath){
-	//WIN32_FIND_DATA ffd;
-	//HANDLE hFind = INVALID_HANDLE_VALUE;
-	//TCHAR szDir[MAX_PATH] = { 0, }, szDepthDir[MAX_PATH] = { 0, };
+void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
+	WIN32_FIND_DATA ffd;
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+	TCHAR szDir[MAX_PATH] = { 0, };
 
-	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, datapath, strlen(datapath), szDir, MAX_PATH);
-	//StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
-	//MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, depthpath, strlen(depthpath), szDepthDir, MAX_PATH);
-	//StringCchCat(szDepthDir, MAX_PATH, TEXT("\\*"));
+	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, datapath, strlen(datapath), szDir, MAX_PATH);
+	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
 
-	//hFind = FindFirstFile(szDir, &ffd);
-	//while (FindNextFile(hFind, &ffd) != 0){
+	hFind = FindFirstFile(szDir, &ffd);
+	while (FindNextFile(hFind, &ffd) != 0){
+		TCHAR subDir[MAX_PATH] = { 0, };
+		memcpy(subDir, szDir, sizeof(TCHAR)*MAX_PATH);
+		size_t len;
+		StringCchLength(subDir, MAX_PATH, &len);
+		subDir[len - 1] = '\0';
+		StringCchCat(subDir, MAX_PATH, ffd.cFileName);
+		char tBuf[MAX_PATH], tdepthBuf[MAX_PATH];
+		WideCharToMultiByte(CP_ACP, 0, subDir, MAX_PATH, tBuf, MAX_PATH, NULL, NULL);
 
-	//	TCHAR subDir[MAX_PATH] = { 0, }, subDepthDir[MAX_PATH] = { 0, };
-	//	memcpy(subDir, szDir, sizeof(TCHAR)*MAX_PATH);
-	//	size_t len;
-	//	StringCchLength(subDir, MAX_PATH, &len);
-	//	subDir[len - 1] = '\0';
-	//	StringCchCat(subDir, MAX_PATH, ffd.cFileName);
-	//	char tBuf[MAX_PATH], tdepthBuf[MAX_PATH];
-	//	WideCharToMultiByte(CP_ACP, 0, subDir, MAX_PATH, tBuf, MAX_PATH, NULL, NULL);
+		//Tchar to char
+		char ccFileName[256];
+		WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, len, ccFileName, 256, NULL, NULL);
 
-	//	memcpy(subDepthDir, szDepthDir, sizeof(TCHAR)*MAX_PATH);
-	//	StringCchLength(subDepthDir, MAX_PATH, &len);
-	//	subDepthDir[len - 1] = '\0';
+		if (ccFileName[0] != '.' && strcmp("background", ccFileName)){
+			strcat(tBuf, ccFileName);
+			WIN32_FIND_DATA class_ffd;
+			TCHAR szGraspDir[MAX_PATH] = { 0, };
+			HANDLE hGraspFind = INVALID_HANDLE_VALUE;
+			char GraspPosDir[256];
+			strcpy(GraspPosDir, tBuf);
+			strcat(GraspPosDir, "\\GraspingPos\\*");
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, GraspPosDir, strlen(GraspPosDir), szGraspDir, MAX_PATH);
+			hGraspFind = FindFirstFile(szGraspDir, &class_ffd);
 
-	//	//Tchar to char
-	//	char ccFileName[256];
-	//	WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, len, ccFileName, 256, NULL, NULL);
+			while(FindNextFile(hGraspFind, &class_ffd) != 0){
+				char GraspFileName[256];
+				size_t Grasplen;
+				StringCchLength(class_ffd.cFileName, MAX_PATH, &Grasplen);
+				WideCharToMultiByte(CP_ACP, 0, class_ffd.cFileName, Grasplen, GraspFileName, 256, NULL, NULL);
+
+				if (GraspFileName[0] == '.')
+					continue;
+			}
+
+		}
 
 	//	if (!strcmp(ccFileName, "RGB")){
 	//		WideCharToMultiByte(CP_ACP, 0, subDepthDir, MAX_PATH, tdepthBuf, MAX_PATH, NULL, NULL);
@@ -222,14 +237,14 @@ void PreGraspDataLayer<Dtype>::RGBDloadAll_calcCom(const char* datapath, const c
 	//		}
 	//	}
 
-	//	if ((data_limit_ != 0) && data_limit_ <= data_blob.size())
-	//		break;
+		if ((data_limit_ != 0) && data_limit_ <= pos_blob.size())
+			break;
 
 	//	if (ffd.dwFileAttributes == 16 && ffd.cFileName[0] != '.'){
 	//		printf("%s\n", tBuf);
 	//		RGBDloadAll_calcCom(tBuf, tdepthBuf);
 	//	}
-	//}
+	}
 }
 
 template <typename Dtype>
