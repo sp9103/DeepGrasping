@@ -28,7 +28,7 @@ namespace caffe {
 			else if (Internal_idx == 2){
 				const int d_x = width * spatial_pos[2 * Feature_idx + 0];
 				const int d_y = height * spatial_pos[2 * Feature_idx + 1];
-				topdata[index] = depthval[d_x + d_y * width];
+				topdata[index] = depthval[d_x + d_y * width] / 1000.f;
 			}
 		}
 	}

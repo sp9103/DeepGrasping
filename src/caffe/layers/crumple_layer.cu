@@ -18,8 +18,6 @@ void CrumpleLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	Dtype* top_data = top[0]->mutable_gpu_data();
 
 	caffe_copy(bottom[0]->count(), bottom_data, top_data);
-
-	//제대로 복사됬나 결과 꼭 확인해보기!!
 }
 
 template <typename Dtype>
