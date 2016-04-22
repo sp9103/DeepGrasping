@@ -401,7 +401,8 @@ int main(int argc, char** argv) {
 
 	////////////////////////////////////////////////////////PreGrasping//////////////////////////////////////////////////////////////////////////////////////////////////
 	int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt", "--weights=PreGraspingLearning/vision_layer.caffemodel", "--gpu=all" };
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
+		"--weights=PreGraspingLearning/vision_layer.caffemodel,Transformation_Net.caffemodel", "--gpu=all" };
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	char **argvp;
