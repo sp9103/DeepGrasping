@@ -12,6 +12,8 @@
 #include <Windows.h>
 #include <time.h>
 
+#define SWAP(a,b,t) (t)=(a), (a)=(b), (b)=(a)
+
 namespace caffe {
 
 template <typename Dtype>
@@ -184,9 +186,13 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 					//upper Left, Upper Right, Thumb
 					cv::Mat posMat(9, 1, CV_32FC1);
 					float tempFloat;
-					fscanf(fp, "%f %f %f ", &posMat.at<float>(0), &posMat.at<float>(1), &posMat.at<float>(2));
-					fscanf(fp, "%f %f %f ", &posMat.at<float>(3), &posMat.at<float>(4), &posMat.at<float>(5));
-					fscanf(fp, "%f %f %f\n", &posMat.at<float>(6), &posMat.at<float>(7), &posMat.at<float>(8));
+					cv::Point3f UpperLeft, UpperRight, Thumb, swapPoint;
+					fscanf(fp, "%f %f %f ", &UpperLeft.x, &UpperLeft.y, &UpperLeft.z);
+					fscanf(fp, "%f %f %f ", &UpperRight.x, &UpperRight.y, &UpperRight.z);
+					fscanf(fp, "%f %f %f\n", &Thumb.x, &Thumb.y, &Thumb.z);
+
+					//손가락 재정렬
+					calcFingerSort(&UpperLeft, &UpperRight, &Thumb);
 
 					std::pair<int, cv::Mat> tempPair;
 					tempPair.first = imgCount;
@@ -247,6 +253,40 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 		}
 	}
 }
+template <typename Dtype>
+void PreGraspDataLayer<Dtype>::calcFingerSort(cv::Point3f *upperLeft, cv::Point3f *upperRight, cv::Point3f *thumb){
+	cv::Point3f tLeft = *upperLeft;
+	cv::Point3f tRight = *upperRight;
+	cv::Point3f tThumb = *thumb;
+	cv::Point3f swapPoint;
+
+	float leftRightDist = calcDist3D(tLeft, tRight);
+	float thumbRightDist = calcDist3D(tThumb, tRight);
+	float thumbleftDist = calcDist3D(tThumb, tLeft);
+
+	//엄지 교환
+	if (leftRightDist < thumbRightDist && leftRightDist < thumbleftDist){
+		*thumb = tThumb;
+	}
+	else if (thumbRightDist < leftRightDist && thumbRightDist < thumbleftDist){
+		*thumb = tLeft;
+		SWAP(tThumb, tLeft, swapPoint);
+	}
+	else if (thumbleftDist < leftRightDist && thumbleftDist < thumbRightDist){
+		*thumb = tRight;
+		SWAP(tThumb, tRight, swapPoint);
+	}
+
+	//Left Right 구분
+	thumbRightDist = calcDist3D(*thumb, tRight);
+	thumbleftDist = calcDist3D(*thumb, tLeft);
+
+	if (thumbleftDist < thumbRightDist)
+		SWAP(tRight, tLeft, swapPoint);
+	
+	*upperLeft = tLeft;
+	*upperRight = tRight;
+}
 
 template <typename Dtype>
 bool PreGraspDataLayer<Dtype>::fileTypeCheck(char *fileName){
@@ -276,6 +316,11 @@ void PreGraspDataLayer<Dtype>::makeRandbox(int *arr, int size){
 		arr[i] = arr[tidx];
 		arr[tidx] = t;
 	}
+}
+
+template <typename Dtype>
+float PreGraspDataLayer<Dtype>::calcDist3D(cv::Point3f A, cv::Point3f B){
+	return sqrt(pow(A.x - B.x, 2) + pow(A.y - B.y, 2) + pow(A.z - B.z, 2));
 }
 
 INSTANTIATE_CLASS(PreGraspDataLayer);

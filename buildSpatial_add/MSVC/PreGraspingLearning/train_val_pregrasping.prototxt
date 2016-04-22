@@ -195,7 +195,27 @@ layer {
   type: "DepthConcat"
   bottom: "spatial1"
   bottom: "Depth"
-  top: "concat"
+  top: "Depthconcat"
+}
+layer {
+  name: "crumple1"
+  type: "Crumple"
+  bottom: "Depthconcat"
+  top: "Depthconcat_crumple"
+  crumple_param{
+	mode: 1
+	size : 3
+  }
+}
+layer {
+  name: "crumple2"
+  type: "Crumple"
+  bottom: "Depthconcat_crumple"
+  top: "XYZ_robot_crumple"
+  crumple_param{
+	mode: 2
+	size : 192
+  }
 }
 layer {
   name: "fc_temp"

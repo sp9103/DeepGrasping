@@ -543,6 +543,8 @@ protected:
 	void PreGrasp_DataLoadAll(const char* datapath);
 	bool fileTypeCheck(char *fileName);
 	void makeRandbox(int *arr, int size);
+	float calcDist3D(cv::Point3f A, cv::Point3f B);
+	void calcFingerSort(cv::Point3f *upperLeft, cv::Point3f *upperRight, cv::Point3f *thumb);
 
 	int batch_size_, channels_, height_, width_, size_;
 	int n_;
