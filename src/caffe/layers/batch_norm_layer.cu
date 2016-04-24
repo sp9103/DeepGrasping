@@ -21,12 +21,10 @@ namespace caffe {
 
 		if (use_global_stats_) {
 			// use the stored mean/variance estimates.
-			Dtype scale_factor = this->blobs_[2]->cpu_data()[0] == 0 ?
+			const Dtype scale_factor = this->blobs_[2]->cpu_data()[0] == 0 ?
 				0 : 1 / this->blobs_[2]->cpu_data()[0];
 			caffe_gpu_scale(variance_.count(), scale_factor,
 				this->blobs_[0]->gpu_data(), mean_.mutable_gpu_data());
-			int m = bottom[0]->count() / channels_;
-			scale_factor *= m > 1 ? Dtype(m) / (m - 1) : 1;
 			caffe_gpu_scale(variance_.count(), scale_factor,
 				this->blobs_[1]->gpu_data(), variance_.mutable_gpu_data());
 		}
@@ -66,8 +64,11 @@ namespace caffe {
 			this->blobs_[2]->mutable_cpu_data()[0] += 1;
 			caffe_gpu_axpby(mean_.count(), Dtype(1), mean_.gpu_data(),
 				moving_average_fraction_, this->blobs_[0]->mutable_gpu_data());
-			caffe_gpu_axpby(variance_.count(), Dtype(1), variance_.gpu_data(),
-				moving_average_fraction_, this->blobs_[1]->mutable_gpu_data());
+			int m = bottom[0]->count() / channels_;
+			Dtype bias_correction_factor = m > 1 ? Dtype(m) / (m - 1) : 1;
+			caffe_gpu_axpby(variance_.count(), bias_correction_factor,
+				variance_.gpu_data(), moving_average_fraction_,
+				this->blobs_[1]->mutable_gpu_data());
 		}
 
 		// normalize variance

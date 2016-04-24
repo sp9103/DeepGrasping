@@ -8,8 +8,8 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 183
-    data_path : "./UVD_XYZ_net/uvd_xyz_final(2016.03.31)/uvd_XYZ_robot_train.bin"
+    batch_size: 59855
+    data_path : "./UVD_XYZ_net/uvd_xyz_camera/uvd_xyz_rgb_frame_obj_train.bin"
   }
 }
 layer {
@@ -21,8 +21,8 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-   batch_size: 150
-   data_path : "./UVD_XYZ_net/uvd_xyz_final(2016.03.31)/uvd_XYZ_robot_train.bin"
+   batch_size: 5542
+   data_path : "./UVD_XYZ_net/uvd_xyz_camera/uvd_xyz_rgb_frame_obj_train.bin"
   }
 }
 layer {
@@ -64,10 +64,6 @@ layer {
   param {
     lr_mult: 0
   }
-batch_norm_param{
-     use_global_stats : true;
-  }
-
 }
 layer {
   name: "uvd_xyz_relu1"
@@ -114,10 +110,6 @@ layer {
   param {
     lr_mult: 0
   }
-  batch_norm_param{
-     use_global_stats : true;
-  }
-
 }
 layer {
   name: "uvd_xyz_relu2"
@@ -151,34 +143,9 @@ layer {
   }
 }
 layer {
-  name: "xyz_xyz_robot"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc3"
-  top: "xyz_robot"
-  param {
-    lr_mult: 1
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 1
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 3
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
   name: "distance"
   type: "EuclideanDist"
-  bottom: "xyz_robot"
+  bottom: "uvd_xyz_fc3"
   bottom: "label"
   top: "accuracy"
   include {
@@ -188,7 +155,7 @@ layer {
 layer {
   name: "loss"
   type: "EuclideanLoss"
-  bottom: "xyz_robot"
+  bottom: "uvd_xyz_fc3"
   bottom: "label"
   top: "l2_error"
 }

@@ -31,10 +31,6 @@ void LTLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 	vector<int> bias_shape(1, N_);
 	T.Reshape(bias_shape);
 
-	vector<int> bias_mul_shape(1, M_);
-	bias_multiplier_.Reshape(bias_shape);
-	caffe_set(M_, Dtype(1), bias_multiplier_.mutable_cpu_data());
-
 	//Matrix setting
 	Dtype RMat[9] = { -20.683149, 957.240906, 290.486237,
 					963.990662, -9.238551, 198.420578,

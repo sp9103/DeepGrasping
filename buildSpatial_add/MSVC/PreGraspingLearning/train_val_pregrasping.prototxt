@@ -212,7 +212,7 @@ layer {
 layer {
   name: "uvd_xyz_fc1"
   type: "InnerProduct"
-  bottom: "data"
+  bottom: "Depthconcat_crumple"
   top: "uvd_xyz_fc1"
   param {
     lr_mult: 0
@@ -247,6 +247,9 @@ layer {
   }
   param {
     lr_mult: 0
+  }
+  bacth_norm_param {
+     use_global_stats = true;
   }
 }
 layer {
@@ -293,6 +296,9 @@ layer {
   }
   param {
     lr_mult: 0
+  }
+  bacth_norm_param {
+     use_global_stats = true;
   }
 }
 layer {

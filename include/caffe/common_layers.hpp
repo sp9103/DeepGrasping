@@ -943,7 +943,6 @@ protected:
 
 	Blob<Dtype> R;
 	Blob<Dtype> T;
-	Blob<Dtype> bias_multiplier_;
 };
 
 /**

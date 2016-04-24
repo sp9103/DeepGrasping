@@ -66,9 +66,6 @@ void LTLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 	const Dtype* RMat = R.gpu_data();
 	const int bottom_count = bottom[0]->count();
 	// Gradient with respect to bottom data
-	/*caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, K_, N_, (Dtype)1.,
-		top_diff, this->blobs_[0]->gpu_data(), (Dtype)0.,
-		bottom[0]->mutable_gpu_diff());*/
 
 	kernel_linear_backward<Dtype> << <CAFFE_GET_BLOCKS(bottom_count),
 		CAFFE_CUDA_NUM_THREADS >> >(bottom_count, N_, M_,
