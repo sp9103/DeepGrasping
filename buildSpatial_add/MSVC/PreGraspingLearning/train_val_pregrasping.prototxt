@@ -248,8 +248,8 @@ layer {
   param {
     lr_mult: 0
   }
-  bacth_norm_param {
-     use_global_stats = true;
+  batch_norm_param {
+     use_global_stats : true
   }
 }
 layer {
@@ -297,8 +297,8 @@ layer {
   param {
     lr_mult: 0
   }
-  bacth_norm_param {
-     use_global_stats = true;
+  batch_norm_param {
+     use_global_stats : true;
   }
 }
 layer {
@@ -369,10 +369,10 @@ layer {
   }
 }
 layer {
-  name: "fc_temp"
+  name: "fc_pregrasp1"
   type: "InnerProduct"
   bottom: "XYZ_robot_crumple"
-  top: "fc_temp"
+  top: "fc_pregrasp1"
   param {
     lr_mult: 1
     #decay_mult: 1
@@ -384,7 +384,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 9
+    num_output: 192
     weight_filler {
       type: "gaussian"
       std: 0.005
@@ -396,10 +396,107 @@ layer {
   }
 }
 layer {
-  name: "EuclideanLoss"
-  type: "EuclideanLoss"
-  bottom: "fc_temp"
+  name: "relu_pregrasp1"
+  type: "ReLU"
+  bottom: "fc_pregrasp1"
+  top: "fc_pregrasp1"
+}
+layer {
+  name: "fc_pregrasp2"
+  type: "InnerProduct"
+  bottom: "fc_pregrasp1"
+  top: "fc_pregrasp2"
+  param {
+    lr_mult: 1
+    #decay_mult: 1
+    decay_mult: 0
+  }
+  param {
+    #lr_mult: 2
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 192
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "relu_pregrasp2"
+  type: "ReLU"
+  bottom: "fc_pregrasp2"
+  top: "fc_pregrasp2"
+}
+
+layer {
+  name: "fc_pregrasp3"
+  type: "InnerProduct"
+  bottom: "fc_pregrasp2"
+  top: "fc_pregrasp3"
+  param {
+    lr_mult: 1
+    #decay_mult: 1
+    decay_mult: 0
+  }
+  param {
+    #lr_mult: 2
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 192
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "relu_pregrasp3"
+  type: "ReLU"
+  bottom: "fc_pregrasp3"
+  top: "fc_pregrasp3"
+}
+layer {
+  name: "GMM"
+  type: "GMM"
+  bottom: "fc_pregrasp3"
+  top: "GMM"
+  param {
+    lr_mult: 1
+    #decay_mult: 1
+    decay_mult: 0
+  }
+  param {
+    #lr_mult: 2
+    lr_mult: 1
+    decay_mult: 0
+  }
+  gmm_param{
+	data_dim : 9
+	class_size : 10
+  }
+}
+layer {
+  name: "MDNLoss"
+  type: "MDNLoss"
+  bottom: "GMM"
   bottom: "Position"
   top: "l2_error"
   loss_weight: 1
+  gmm_param{
+	data_dim : 9
+	class_size : 10
+  }
 }

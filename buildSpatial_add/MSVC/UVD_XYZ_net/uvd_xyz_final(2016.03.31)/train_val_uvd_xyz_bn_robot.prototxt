@@ -21,7 +21,7 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-   batch_size: 150
+   batch_size: 10
    data_path : "./UVD_XYZ_net/uvd_xyz_final(2016.03.31)/uvd_XYZ_robot_train.bin"
   }
 }
