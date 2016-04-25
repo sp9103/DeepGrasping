@@ -4,7 +4,7 @@ layer {
   type: "PreGraspData"
   top: "RGB"
   top: "Depth"
-  top: "COM"
+  #top: "COM"
   top: "Position"
   include {
     phase: TRAIN

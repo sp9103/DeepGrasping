@@ -54,9 +54,8 @@ __global__ void kernel_class_summation(const int count, const int class_size,
 	const Dtype* alpha_pi_, Dtype* alpha_pi_sum_) {
 	CUDA_KERNEL_LOOP(index, count) {
 		Dtype sum = 0;
-		const int batch_idx = index / class_size;
 		for (int i = 0; i < class_size; i++)
-			sum += alpha_pi_[batch_idx * class_size + i];
+			sum += alpha_pi_[index * class_size + i];
 		alpha_pi_sum_[index] = sum;
 	}
 }
@@ -105,15 +104,6 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	kernel_label_subtract<Dtype> << <CAFFE_GET_BLOCKS(diff_.count()), CAFFE_CUDA_NUM_THREADS >> >(diff_.count(),
 		data_dim + 2, class_size, data_dim, bottom_data, label, diff_.mutable_gpu_data());
 
-	Dtype label_box[9], mu_box[9], diff_box[9];
-	for (int i = 0; i < batch_size; i++){
-		cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-		for (int j = 0; j < class_size; j++){
-			cudaMemcpy(diff_box, &diff_.gpu_data()[i*class_size*9 + j * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-			cudaMemcpy(mu_box, &bottom_data[i*class_size*11 + j * 11 + 1], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-		}
-	}
-
 	//square ( mu - t )^2
 	caffe_gpu_mul(diff_.count(), diff_.gpu_data(), diff_.gpu_data(), diff_square_.mutable_gpu_data());
 
@@ -134,7 +124,11 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	caffe_gpu_log(alpha_pi_sum_.count(), alpha_pi_sum_.gpu_data(), batch_loss_.mutable_gpu_data());
 	caffe_gpu_dot(batch_loss_.count(), batch_loss_.gpu_data(), sum_multiplier_.gpu_data(), &loss);
 	loss /= bottom[0]->num();
-	top[0]->mutable_cpu_data()[0] = loss;
+	top[0]->mutable_cpu_data()[0] = -loss;
+
+	if (std::isnan(loss) || std::isinf(loss)){
+		printf("loss invalid value.\n");
+	}
 }
 
 //Diff 0번지는 값있고 1번지는 없음
@@ -153,6 +147,19 @@ void MDNLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 			kernel_posterior_calc<Dtype> << <CAFFE_GET_BLOCKS(batch_size*class_size), CAFFE_CUDA_NUM_THREADS >> >
 				(batch_size*class_size, batch_size, class_size, 
 				alpha_pi_.gpu_data(), alpha_pi_sum_.gpu_data(), posterior_pi_.mutable_gpu_data());
+
+			Dtype post_box[10], alpha_pi_box[10], alpha_pi_sum_box;
+			Dtype sum_temp = 0, alpha_pi_sum_temp = 0;
+			for (int i = 0; i < batch_size; i++){
+				sum_temp = 0, alpha_pi_sum_temp = 0;
+				cudaMemcpy(post_box, &posterior_pi_.gpu_data()[i * 10], sizeof(Dtype) * 10, cudaMemcpyDeviceToHost);
+				cudaMemcpy(alpha_pi_box, &alpha_pi_.gpu_data()[i * 10], sizeof(Dtype) * 10, cudaMemcpyDeviceToHost);
+				cudaMemcpy(&alpha_pi_sum_box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
+				for (int j = 0; j < 10; j++){
+					sum_temp += post_box[j];
+					alpha_pi_sum_temp += alpha_pi_box[j];
+				}
+			}
 
 			//calculate bottom diff (alpha_diff, mu_diff, sigma_diff)
 			kernel_delta_calc<Dtype> << <CAFFE_GET_BLOCKS(bottom[i]->count()), CAFFE_CUDA_NUM_THREADS >> >(bottom[i]->count(),

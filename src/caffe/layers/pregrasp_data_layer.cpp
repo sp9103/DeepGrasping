@@ -38,12 +38,17 @@ void PreGraspDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom
   depth_dim[1] = height_;
   depth_dim[2] = width_;
   top[1]->Reshape(depth_dim);												//[1] Depth
+  //std::vector<int> pos_dim(2);
+  //pos_dim[0] = batch_size_;
+  //pos_dim[1] = 3;
+  //top[2]->Reshape(pos_dim);													//[2] COM
+  //pos_dim[1] = 9;
+  //top[3]->Reshape(pos_dim);													//[3] Pregrasping postion (label)
+
   std::vector<int> pos_dim(2);
   pos_dim[0] = batch_size_;
-  pos_dim[1] = 3;
-  top[2]->Reshape(pos_dim);													//[2] COM
   pos_dim[1] = 9;
-  top[3]->Reshape(pos_dim);													//[3] Pregrasping postion (label)
+  top[2]->Reshape(pos_dim);													//[2] Pregrasping postion (label)
 
   //전체 로드
   PreGrasp_DataLoadAll(data_path_.c_str());
@@ -81,8 +86,10 @@ void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
 	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
-	Dtype* com_data = top[2]->mutable_cpu_data();					//[2] COM
-	Dtype* pos_data = top[3]->mutable_cpu_data();					//[3] Pregrasping postion (label)
+	//Dtype* com_data = top[2]->mutable_cpu_data();					//[2] COM
+	//Dtype* pos_data = top[3]->mutable_cpu_data();					//[3] Pregrasping postion (label)
+
+	Dtype* pos_data = top[2]->mutable_cpu_data();					//[3] Pregrasping postion (label)
 
 	for (int i = 0; i < batch_size_; i++){
 		//RGB 로드
@@ -90,12 +97,12 @@ void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		int idx = posPair.first;
 		cv::Mat	rgbImg = this->image_blob.at(idx);
 		cv::Mat depthImg = this->depth_blob.at(idx).clone();
-		cv::Mat com = this->com_blob.at(idx);
+		//cv::Mat com = this->com_blob.at(idx);
 		cv::Mat pos = posPair.second.clone();
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
 		caffe_copy(height_ * width_, depthImg.ptr<Dtype>(0), depth_data);
-		caffe_copy(3, com.ptr<Dtype>(0), com_data);
+		//caffe_copy(3, com.ptr<Dtype>(0), com_data);
 		caffe_copy(9, pos.ptr<Dtype>(0), pos_data);
 
 		///////////////////////////
@@ -117,8 +124,10 @@ void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 		rgb_data += top[0]->offset(1);
 		depth_data += top[1]->offset(1);
-		com_data += top[2]->offset(1);
-		pos_data += top[3]->offset(1);
+		//com_data += top[2]->offset(1);
+		/*pos_data += top[3]->offset(1);*/
+
+		pos_data += top[2]->offset(1);
 		if (dataidx + 1 >= this->pos_blob.size()){
 			makeRandbox(randbox, this->pos_blob.size());
 			dataidx = 0;
@@ -194,15 +203,16 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 					//손가락 재정렬
 					calcFingerSort(&UpperLeft, &UpperRight, &Thumb);
 
-					posMat.at<float>(0) = UpperLeft.x;
-					posMat.at<float>(1) = UpperLeft.y;
-					posMat.at<float>(2) = UpperLeft.z;
-					posMat.at<float>(3) = UpperRight.x;
-					posMat.at<float>(4) = UpperRight.y;
-					posMat.at<float>(5) = UpperRight.z;
-					posMat.at<float>(6) = Thumb.x;
-					posMat.at<float>(7) = Thumb.y;
-					posMat.at<float>(8) = Thumb.z;
+					//mm -> M 단위로 변경
+					posMat.at<float>(0) = UpperLeft.x / 100.f;
+					posMat.at<float>(1) = UpperLeft.y / 100.f;
+					posMat.at<float>(2) = UpperLeft.z / 100.f;
+					posMat.at<float>(3) = UpperRight.x / 100.f;
+					posMat.at<float>(4) = UpperRight.y / 100.f;
+					posMat.at<float>(5) = UpperRight.z / 100.f;
+					posMat.at<float>(6) = Thumb.x / 100.f;
+					posMat.at<float>(7) = Thumb.y / 100.f;
+					posMat.at<float>(8) = Thumb.z / 100.f;
 
 					std::pair<int, cv::Mat> tempPair;
 					tempPair.first = imgCount;
@@ -244,17 +254,17 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 				depth_blob.push_back(depthMap.clone());
 				fclose(fp);
 
-				//COM 읽어오기
-				sprintf(GraspCOMFile, "%s\\COM\\%s", tBuf, GraspFileName);
-				filePathLen = strlen(GraspCOMFile);
-				GraspCOMFile[filePathLen - 1] = 't';
-				GraspCOMFile[filePathLen - 2] = 'x';
-				GraspCOMFile[filePathLen - 3] = 't';
-				fp = fopen(GraspCOMFile, "r");
-				cv::Mat comMat(3, 1, CV_32FC1);
-				fscanf(fp, "%f %f %f", &comMat.at<float>(0), &comMat.at<float>(1), &comMat.at<float>(2));
-				com_blob.push_back(comMat.clone());
-				fclose(fp);
+				////COM 읽어오기
+				//sprintf(GraspCOMFile, "%s\\COM\\%s", tBuf, GraspFileName);
+				//filePathLen = strlen(GraspCOMFile);
+				//GraspCOMFile[filePathLen - 1] = 't';
+				//GraspCOMFile[filePathLen - 2] = 'x';
+				//GraspCOMFile[filePathLen - 3] = 't';
+				//fp = fopen(GraspCOMFile, "r");
+				//cv::Mat comMat(3, 1, CV_32FC1);
+				//fscanf(fp, "%f %f %f", &comMat.at<float>(0), &comMat.at<float>(1), &comMat.at<float>(2));
+				//com_blob.push_back(comMat.clone());
+				//fclose(fp);
 
 				if ((data_limit_ != 0) && data_limit_ <= pos_blob.size())
 					break;
