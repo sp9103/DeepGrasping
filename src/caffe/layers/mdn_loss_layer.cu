@@ -87,7 +87,7 @@ __global__ void kernel_delta_calc(const int count,
 		else{											//mu delta calculate
 			const int data_idx = internal_idx - 1;		//[0, datadim-1]
 			Dtype diff_ik = diff[data_dim * class_idx + data_idx];
-			bottom_diff[index] = posterior[class_idx] * ( diff_ik / (sigma_inverse * sigma_inverse));
+			bottom_diff[index] = posterior[class_idx] * ( diff_ik * (sigma_inverse * sigma_inverse));
 		}
 	}
 }
@@ -99,6 +99,12 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	const Dtype* bottom_data = bottom[0]->gpu_data();
 	const Dtype* label = bottom[1]->gpu_data();
 	const int batch_size = bottom[0]->shape()[0];
+
+	Dtype bot_box[110], label_box[9];
+	for (int i = 0; i < batch_size; i++){
+		cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+		cudaMemcpy(bot_box, &bottom_data[110 * i], sizeof(Dtype) * 110, cudaMemcpyDeviceToHost);
+	}
 
 	//subtract (mu - t)
 	kernel_label_subtract<Dtype> << <CAFFE_GET_BLOCKS(diff_.count()), CAFFE_CUDA_NUM_THREADS >> >(diff_.count(),
@@ -165,6 +171,14 @@ void MDNLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 			kernel_delta_calc<Dtype> << <CAFFE_GET_BLOCKS(bottom[i]->count()), CAFFE_CUDA_NUM_THREADS >> >(bottom[i]->count(),
 				batch_size, class_size, data_dim + 2, data_dim, 
 				posterior_pi_.gpu_data(), diff_.gpu_data(), diff_norm_.gpu_data(), bottom_data, bottom_diff);
+
+			Dtype diff_box[110];
+			for (int i = 0; i < batch_size; i++){
+				cudaMemcpy(diff_box, &bottom_diff[i*110], sizeof(Dtype) * 110, cudaMemcpyDeviceToHost);
+				for (int j = 0; j < 110; j++)
+					if (std::isnan(diff_box[j]) || std::isinf(diff_box[j]))
+						printf("loss invalid value.\n");
+			}
 		}
 	}
 }

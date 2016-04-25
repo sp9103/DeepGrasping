@@ -90,11 +90,16 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
   //inner product 이후 Gaussian mixture parameter calculate
   //0: alpha, 1~x : mu, x+1 : sigma 
+
   //find alpha max
   kernel_alpha_max<Dtype> << <CAFFE_GET_BLOCKS(batchsize), CAFFE_CUDA_NUM_THREADS >> >(batchsize, data_dim+2, class_size, top_data, maxValue_.mutable_gpu_data());
 
   //sub alpha max
   kernel_alpha_subtract<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
+
+  Dtype box[110];
+  for (int i = 0; i < batchsize; i++)
+	  cudaMemcpy(box, &top_data[i * 110], sizeof(Dtype) * 110, cudaMemcpyDeviceToHost);
 
   //exponential - sigma에 exp를 취하는 것이 문제가 될 수 있음. overflow. ( alpha는 위에서 sub max를 해줌으로 overflow 예방) ==> 문제가 있을 경우 1/sigma 를 산출 ==> 1/sigma를 리턴
   sigmaExp<Dtype> << <CAFFE_GET_BLOCKS(datacount), CAFFE_CUDA_NUM_THREADS >> >(datacount, data_dim+2, top_data);
