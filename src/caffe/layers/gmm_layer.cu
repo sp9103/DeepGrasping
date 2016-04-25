@@ -104,6 +104,7 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
   //div alpha
   kernel_alpha_div<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
+
 }
 
 template <typename Dtype>

@@ -487,6 +487,16 @@ layer {
 	data_dim : 9
 	class_size : 10
   }
+  inner_product_param {
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
 }
 layer {
   name: "MDNLoss"
