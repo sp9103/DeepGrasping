@@ -194,6 +194,16 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 					//손가락 재정렬
 					calcFingerSort(&UpperLeft, &UpperRight, &Thumb);
 
+					posMat.at<float>(0) = UpperLeft.x;
+					posMat.at<float>(1) = UpperLeft.y;
+					posMat.at<float>(2) = UpperLeft.z;
+					posMat.at<float>(3) = UpperRight.x;
+					posMat.at<float>(4) = UpperRight.y;
+					posMat.at<float>(5) = UpperRight.z;
+					posMat.at<float>(6) = Thumb.x;
+					posMat.at<float>(7) = Thumb.y;
+					posMat.at<float>(8) = Thumb.z;
+
 					std::pair<int, cv::Mat> tempPair;
 					tempPair.first = imgCount;
 					tempPair.second = posMat.clone();

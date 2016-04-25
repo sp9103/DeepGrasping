@@ -105,6 +105,15 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	kernel_label_subtract<Dtype> << <CAFFE_GET_BLOCKS(diff_.count()), CAFFE_CUDA_NUM_THREADS >> >(diff_.count(),
 		data_dim + 2, class_size, data_dim, bottom_data, label, diff_.mutable_gpu_data());
 
+	Dtype label_box[9], mu_box[9], diff_box[9];
+	for (int i = 0; i < batch_size; i++){
+		cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+		for (int j = 0; j < class_size; j++){
+			cudaMemcpy(diff_box, &diff_.gpu_data()[i*class_size*9 + j * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+			cudaMemcpy(mu_box, &bottom_data[i*class_size*11 + j * 11 + 1], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+		}
+	}
+
 	//square ( mu - t )^2
 	caffe_gpu_mul(diff_.count(), diff_.gpu_data(), diff_.gpu_data(), diff_square_.mutable_gpu_data());
 
