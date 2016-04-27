@@ -343,12 +343,12 @@ template <typename Dtype>
 void PreGraspDataLayer<Dtype>::makeRandbox(int *arr, int size){
 	for (int i = 0; i < size; i++)
 		arr[i] = i;
-	//for (int i = 0; i < size; i++){
-	//	int tidx = rand() % size;
-	//	int t = arr[i];
-	//	arr[i] = arr[tidx];
-	//	arr[tidx] = t;
-	//}
+	for (int i = 0; i < size; i++){
+		int tidx = rand() % size;
+		int t = arr[i];
+		arr[i] = arr[tidx];
+		arr[tidx] = t;
+	}
 }
 
 template <typename Dtype>
