@@ -20,7 +20,7 @@ __global__ void sigmaExp(const int nthreads, const int param_size, Dtype* const 
 		if (vecIdx == 0)						//alpha
 			topdata[index] = exp(topdata[index]);
 		else if(vecIdx == (param_size - 1))		//sigma
-			topdata[index] = exp(-topdata[index]);
+			topdata[index] = exp(topdata[index]);
 	}
 }
 
@@ -71,7 +71,7 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype* bottom_data = bottom[0]->gpu_data();
   Dtype* top_data = top[0]->mutable_gpu_data();
   const Dtype* weight = this->blobs_[0]->gpu_data();
-  const int datacount = bottom[0]->count();
+  const int datacount = top[0]->count();
   const int batchsize = bottom[0]->shape()[0];
   if (M_ == 1) {
     caffe_gpu_gemv<Dtype>(CblasNoTrans, N_, K_, (Dtype)1.,
@@ -97,10 +97,6 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   //sub alpha max
   kernel_alpha_subtract<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
 
-  Dtype box[110];
-  for (int i = 0; i < batchsize; i++)
-	  cudaMemcpy(box, &top_data[i * 110], sizeof(Dtype) * 110, cudaMemcpyDeviceToHost);
-
   //exponential - sigma에 exp를 취하는 것이 문제가 될 수 있음. overflow. ( alpha는 위에서 sub max를 해줌으로 overflow 예방) ==> 문제가 있을 경우 1/sigma 를 산출 ==> 1/sigma를 리턴
   sigmaExp<Dtype> << <CAFFE_GET_BLOCKS(datacount), CAFFE_CUDA_NUM_THREADS >> >(datacount, data_dim+2, top_data);
 
@@ -109,7 +105,6 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
   //div alpha
   kernel_alpha_div<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
-
 }
 
 template <typename Dtype>

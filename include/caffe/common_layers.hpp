@@ -984,6 +984,7 @@ protected:
 	Blob<Dtype> bias_multiplier_;
 
 	Blob<Dtype>	maxValue_;						//softmax의 결과물과 max_value의 결과물
+	Blob<Dtype> InnerProduct_result_;
 };
 
 }  // namespace caffe

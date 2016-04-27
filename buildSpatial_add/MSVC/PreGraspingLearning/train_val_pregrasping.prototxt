@@ -16,7 +16,7 @@ layer {
     width : 160
     data_path : "D:/PreGraspingData"
  
-    #data_limit : 110
+    data_limit : 200
   }
 }
 layer {
@@ -24,7 +24,7 @@ layer {
   type: "PreGraspData"
   top: "RGB"
   top: "Depth"
-  top: "COM"
+ # top: "COM"
   top: "Position"
   include {
     phase: TEST
@@ -461,12 +461,6 @@ layer {
       value: 0.1
     }
   }
-}
-layer {
-  name: "relu_pregrasp3"
-  type: "ReLU"
-  bottom: "fc_pregrasp3"
-  top: "fc_pregrasp3"
 }
 layer {
   name: "GMM"

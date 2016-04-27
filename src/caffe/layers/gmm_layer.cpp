@@ -73,6 +73,7 @@ void GMMLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   top_shape.resize(axis + 1);
   top_shape[axis] = N_;
   top[0]->Reshape(top_shape);
+  InnerProduct_result_.Reshape(top_shape);
   // Set up the bias multiplier
   if (bias_term_) {
     vector<int> bias_shape(1, M_);
