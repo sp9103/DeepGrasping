@@ -776,6 +776,8 @@ protected:
 	Blob<Dtype> backwardTemp_;
 	Blob<Dtype> softmaxResult_;
 	Blob<Dtype>	maxValue_;						//softmax의 결과물과 max_value의 결과물
+
+	bool is_visualize;
 	//bool bias_term_;
 	//Blob<Dtype> bias_multiplier_;
 };

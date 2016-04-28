@@ -32,12 +32,12 @@ void PreGraspDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom
       "batch_size, channels, height, and width must be specified and"
       " positive in memory_data_param";
 
-  //top[0]->Reshape(batch_size_, channels_, height_, width_);					//[0] RGB
-  //std::vector<int> depth_dim(3);
-  //depth_dim[0] = batch_size_;
-  //depth_dim[1] = height_;
-  //depth_dim[2] = width_;
-  //top[1]->Reshape(depth_dim);												//[1] Depth
+  top[0]->Reshape(batch_size_, channels_, height_, width_);					//[0] RGB
+  std::vector<int> depth_dim(3);
+  depth_dim[0] = batch_size_;
+  depth_dim[1] = height_;
+  depth_dim[2] = width_;
+  top[1]->Reshape(depth_dim);												//[1] Depth
   //std::vector<int> pos_dim(2);
   //pos_dim[0] = batch_size_;
   //pos_dim[1] = 3;
@@ -45,15 +45,15 @@ void PreGraspDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom
   //pos_dim[1] = 9;
   //top[3]->Reshape(pos_dim);													//[3] Pregrasping postion (label)
 
-  //std::vector<int> pos_dim(2);
-  //pos_dim[0] = batch_size_;
-  //pos_dim[1] = 9;
-  //top[2]->Reshape(pos_dim);													//[2] Pregrasping postion (label)
-
   std::vector<int> pos_dim(2);
   pos_dim[0] = batch_size_;
   pos_dim[1] = 9;
-  top[0]->Reshape(pos_dim);		
+  top[2]->Reshape(pos_dim);													//[2] Pregrasping postion (label)
+
+  //std::vector<int> pos_dim(2);
+  //pos_dim[0] = batch_size_;
+  //pos_dim[1] = 9;
+  //top[0]->Reshape(pos_dim);		
 
   //전체 로드
   PreGrasp_DataLoadAll(data_path_.c_str());
@@ -89,25 +89,25 @@ void PreGraspDataLayer<Dtype>::set_batch_size(int new_size) {
 template <typename Dtype>
 void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
-	//Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
-	//Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
+	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
+	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
 	//Dtype* com_data = top[2]->mutable_cpu_data();					//[2] COM
 	//Dtype* pos_data = top[3]->mutable_cpu_data();					//[3] Pregrasping postion (label)
 
-	//Dtype* pos_data = top[2]->mutable_cpu_data();					//[3] Pregrasping postion (label)
-	Dtype* pos_data = top[0]->mutable_cpu_data();					//[3] Pregrasping postion (label)
+	Dtype* pos_data = top[2]->mutable_cpu_data();					//[3] Pregrasping postion (label)
+	//Dtype* pos_data = top[0]->mutable_cpu_data();					//[3] Pregrasping postion (label)
 
 	for (int i = 0; i < batch_size_; i++){
 		//RGB 로드
 		std::pair<int, cv::Mat> posPair = this->pos_blob.at(randbox[dataidx]);
 		int idx = posPair.first;
-		//cv::Mat	rgbImg = this->image_blob.at(idx);
-		//cv::Mat depthImg = this->depth_blob.at(idx).clone();
+		cv::Mat	rgbImg = this->image_blob.at(idx);
+		cv::Mat depthImg = this->depth_blob.at(idx).clone();
 		//cv::Mat com = this->com_blob.at(idx);
 		cv::Mat pos = posPair.second.clone();
 
-		/*caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
-		caffe_copy(height_ * width_, depthImg.ptr<Dtype>(0), depth_data);*/
+		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
+		caffe_copy(height_ * width_, depthImg.ptr<Dtype>(0), depth_data);
 		//caffe_copy(3, com.ptr<Dtype>(0), com_data);
 		caffe_copy(9, pos.ptr<Dtype>(0), pos_data);
 
@@ -128,13 +128,13 @@ void PreGraspDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		//cv::imshow("depth", tempDepth);
 		//cv::waitKey(0);
 
-		/*rgb_data += top[0]->offset(1);
-		depth_data += top[1]->offset(1);*/
+		rgb_data += top[0]->offset(1);
+		depth_data += top[1]->offset(1);
 		//com_data += top[2]->offset(1);
 		/*pos_data += top[3]->offset(1);*/
 
-		/*pos_data += top[2]->offset(1);*/
-		pos_data += top[0]->offset(1);
+		pos_data += top[2]->offset(1);
+		//pos_data += top[0]->offset(1);
 		if (dataidx + 1 >= this->pos_blob.size()){
 			makeRandbox(randbox, this->pos_blob.size());
 			dataidx = 0;
@@ -232,7 +232,7 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 				fclose(fp);
 
 				//RGB 읽어오기
-				/*sprintf(GraspImageFile, "%s\\RGB\\%s", tBuf, GraspFileName);
+				sprintf(GraspImageFile, "%s\\RGB\\%s", tBuf, GraspFileName);
 				filePathLen = strlen(GraspImageFile);
 				GraspImageFile[filePathLen - 1] = 'p';
 				GraspImageFile[filePathLen - 2] = 'm';
@@ -246,10 +246,10 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 						}
 					}
 				}
-				image_blob.push_back(tempdataMat.clone());*/
+				image_blob.push_back(tempdataMat.clone());
 
 				//Depth 읽어오기
-				/*sprintf(GraspDepthFile, "%s\\DEPTH\\%s", tBuf, GraspFileName);
+				sprintf(GraspDepthFile, "%s\\DEPTH\\%s", tBuf, GraspFileName);
 				int depthwidth, depthheight, depthType;
 				filePathLen = strlen(GraspDepthFile);
 				GraspDepthFile[filePathLen - 1] = 'n';
@@ -262,7 +262,7 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 				cv::Mat depthMap(depthheight, depthwidth, depthType);
 				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
 				depth_blob.push_back(depthMap.clone());
-				fclose(fp);*/
+				fclose(fp);
 
 				////COM 읽어오기
 				//sprintf(GraspCOMFile, "%s\\COM\\%s", tBuf, GraspFileName);

@@ -406,11 +406,14 @@ int main(int argc, char** argv) {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////PreGrasping//////////////////////////////////////////////////////////////////////////////////////////////////
-	/*int targc = 5;
+	//int targc = 5;
+	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
+	//	"--weights=PreGraspingLearning/vision_layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };
+	//int targc = 4;
+	//char *targv[4] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt", "--gpu=all" };
+	int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
-		"--weights=PreGraspingLearning/vision_layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };*/
-	int targc = 4;
-	char *targv[4] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt", "--gpu=all" };
+		"--snapshot=PreGraspingLearning/snapshot_pregrasping/End_to_End_iter_40000.solverstate", "--gpu=all" };
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	char **argvp;

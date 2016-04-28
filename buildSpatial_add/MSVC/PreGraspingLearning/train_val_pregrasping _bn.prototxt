@@ -397,6 +397,21 @@ layer {
   }
 }
 layer {
+  name: "bn_pregrasp1"
+  type: "BatchNorm"
+  bottom: "fc_pregrasp1"
+  top: "fc_pregrasp1"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+layer {
   name: "relu_pregrasp1"
   type: "ReLU"
   bottom: "fc_pregrasp1"
@@ -430,6 +445,21 @@ layer {
   }
 }
 layer {
+  name: "bn_pregrasp2"
+  type: "BatchNorm"
+  bottom: "fc_pregrasp2"
+  top: "fc_pregrasp2"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+layer {
   name: "relu_pregrasp2"
   type: "ReLU"
   bottom: "fc_pregrasp2"
@@ -460,6 +490,21 @@ layer {
       type: "constant"
       value: 0.1
     }
+  }
+}
+layer {
+  name: "bn_pregrasp3"
+  type: "BatchNorm"
+  bottom: "fc_pregrasp3"
+  top: "fc_pregrasp3"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
   }
 }
 layer {

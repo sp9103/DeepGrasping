@@ -17,6 +17,7 @@ void SpatialLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   N_ = num_output;
   const int axis = bottom[0]->CanonicalAxisIndex(
 	  this->layer_param_.spatial_param().axis());
+  is_visualize = this->layer_param_.spatial_param().visualize();
 
   K_ = bottom[0]->count(axis);
 

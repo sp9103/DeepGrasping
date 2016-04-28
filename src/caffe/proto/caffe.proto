@@ -1270,6 +1270,8 @@ message SpatialParameter {
   // May be negative to index from the end (e.g., -1 for the last axis).
   optional int32 axis = 5 [default = 1];
   optional float alpha = 1 [default = 1];
+
+  optional bool visualize = 2;
 }
 
 // Message custom_data_layer parameter
