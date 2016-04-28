@@ -1,11 +1,12 @@
 #net: "PreGraspingLearning/train_val_pregrasping.prototxt"
-net: "PreGraspingLearning/train_val_pregrasping_MDN_test.prototxt"
+net: "PreGraspingLearning/train_val_pregrasping_bn.prototxt"
+#net: "PreGraspingLearning/train_val_pregrasping_MDN_test.prototxt"
 
-test_iter: 1
+test_iter: 10
 test_interval: 1000
 test_initialization: false
 
-base_lr: 0.000001
+base_lr: 0.000000000000000001
 lr_policy: "inv"
 gamma: 0.0001
 power: 0.75
