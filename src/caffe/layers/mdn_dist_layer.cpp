@@ -48,32 +48,32 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype TotalLeftDist, TotalRightDist, TotalThumbDist;
   Dtype LeftDist, RightDist, ThumbDist;
   Dtype MeanDist, presentDist, TotalDist;
-  //Dtype alpha, alphasum;
-  Dtype *diff = new Dtype[class_size * data_dim];
+  Dtype alpha, alphasum;
+  Dtype *diff = new Dtype[data_dim];
   //Dtype diff[90];
-  //Dtype bot_box[110];
-  //Dtype label_box[9];
+  Dtype bot_box[110];
+  Dtype label_box[9];
 
   TotalLeftDist = TotalRightDist = TotalThumbDist = TotalDist = 0;
   for (int i = 0; i < batch_size; i++){
 	  MeanDist = FLT_MAX;
 	  //alphasum = 0;
-	  //memcpy(bot_box, &bottom_data[110 * i], sizeof(Dtype) * 110);
-	  //memcpy(label_box, &label_data[9 * i], sizeof(Dtype) * 9);
+	  memcpy(bot_box, &bottom_data[110 * i], sizeof(Dtype) * 110);
+	  memcpy(label_box, &label_data[9 * i], sizeof(Dtype) * 9);
 	  for (int j = 0; j < class_size; j++){
 		  presentDist = 0;
-		  //alpha = bottom_data[i*class_size*(data_dim + 2) + j*(data_dim + 2)];
+		  alpha = bottom_data[i*class_size*(data_dim + 2) + j*(data_dim + 2)];
 		  //alphasum += alpha;
 		  for (int k = 0; k < data_dim; k++){
-			  diff[j * data_dim + k] = bottom_data[i*class_size*(data_dim + 2) + j*(data_dim + 2) + k + 1] - label_data[i*data_dim + k];
-			  presentDist += pow(diff[j * data_dim + k], 2);
+			  diff[k] = bottom_data[i*class_size*(data_dim + 2) + j*(data_dim + 2) + k + 1] - label_box[k];
+			  presentDist += pow(diff[k], 2);
 		  }
 
 		  if (MeanDist > presentDist){
 			  MeanDist = presentDist;
-			  LeftDist = sqrt(pow(diff[j * data_dim + 0], 2) + pow(diff[j * data_dim + 1], 2) + pow(diff[j * data_dim + 2], 2));
-			  RightDist = sqrt(pow(diff[j * data_dim + 3], 2) + pow(diff[j * data_dim + 4], 2) + pow(diff[j * data_dim + 5], 2));
-			  ThumbDist = sqrt(pow(diff[j * data_dim + 6], 2) + pow(diff[j * data_dim + 7], 2) + pow(diff[j * data_dim + 8], 2));
+			  LeftDist = sqrt(pow(diff[0], 2) + pow(diff[1], 2) + pow(diff[2], 2));
+			  RightDist = sqrt(pow(diff[3], 2) + pow(diff[4], 2) + pow(diff[5], 2));
+			  ThumbDist = sqrt(pow(diff[6], 2) + pow(diff[7], 2) + pow(diff[8], 2));
 		  }
 	  }
 

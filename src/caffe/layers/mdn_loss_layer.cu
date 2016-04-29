@@ -56,7 +56,8 @@ __global__ void kernel_class_summation(const int count, const int class_size,
 		Dtype sum = 0;
 		for (int i = 0; i < class_size; i++)
 			sum += alpha_pi_[index * class_size + i];
-		alpha_pi_sum_[index] = sum;
+		if (sum != 0)
+			alpha_pi_sum_[index] = sum;
 	}
 }
 
@@ -119,74 +120,6 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	//sumation : ¢²(alpha * distribution)
 	kernel_class_summation<Dtype> << <CAFFE_GET_BLOCKS(batch_size), CAFFE_CUDA_NUM_THREADS >> >(batch_size, class_size, alpha_pi_.gpu_data(), alpha_pi_sum_.mutable_gpu_data());
 
-	Dtype norm_box[10];
-	Dtype diff_box[90], diff_squre_box[90];
-	Dtype bot_box[110], label_box[9];
-	Dtype dist_box[10];
-	Dtype sub;
-	Dtype norm;
-	Dtype alpha_pi_sum__box, alpha_pi_sum__box_temp;
-	for (int i = 0; i < batch_size; i++){
-		cudaMemcpy(diff_box, &diff_.gpu_data()[i * 90], sizeof(Dtype) * 90, cudaMemcpyDeviceToHost);
-		cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
-		cudaMemcpy(bot_box, &bottom_data[110 * i], sizeof(Dtype) * 110, cudaMemcpyDeviceToHost);
-		cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 90], sizeof(Dtype) * 90, cudaMemcpyDeviceToHost);
-		cudaMemcpy(norm_box, &diff_norm_.gpu_data()[i * 10], sizeof(Dtype) * 10, cudaMemcpyDeviceToHost);
-		cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * 10], sizeof(Dtype) * 10, cudaMemcpyDeviceToHost);
-		cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
-		if (alpha_pi_sum__box > 1.f)
-			 printf("p(t|x) probability error.\n");
-		
-			for (int j = 0; j < 110; j++)
-			 if (std::isnan(bot_box[j]) || std::isinf(bot_box[j]))
-			 printf("bottom data overflow.\n");
-		for (int j = 0; j < 90; j++){
-			int tClass_idx = j / 9;
-			int internal_idx = j % 9;
-			sub = bot_box[tClass_idx * 11 + internal_idx + 1] - label_box[j % 9];
-			
-				if (diff_box[j] != sub){
-				printf("diff miss\n");
-				
-			}
-			
-				if (diff_squre_box[j] != (sub*sub))
-				 printf("square miss\n");
-			
-				if (std::isnan(diff_box[j]) || std::isinf(diff_box[j]))
-				 printf("diff_box data overflow.\n");
-			
-		}
-		
-			for (int j = 0; j < 10; j++){
-			norm = 0;
-			for (int k = 0; k < 9; k++)
-				 norm += diff_squre_box[j * 9 + k];
-			if (norm != norm_box[j])
-				 printf("norm error\n");
-			
-		}
-		for (int j = 0; j < 10; j++){
-			Dtype alpha = bot_box[11 * j];
-			Dtype sigma = bot_box[11 * j + 10];
-			Dtype exp_gaussian = exp(-norm_box[j] / sigma / sigma / 2);
-			Dtype gaussian = exp_gaussian / pow(sigma, 9) / pow(2 * MATH_PI, 9 / 2);
-			Dtype dist_temp = alpha * gaussian;
-			if (std::isnan(dist_box[j]) || std::isinf(dist_box[j]) || dist_box[j] < 0)
-				 printf("norm_box data overflow.\n");
-			
-		}
-		
-			alpha_pi_sum__box_temp = 0;
-		for (int j = 0; j < 10; j++){
-			alpha_pi_sum__box_temp += dist_box[j];
-			
-		}
-		if (alpha_pi_sum__box_temp != alpha_pi_sum__box)
-			 printf("summation error");
-	}
-
-
 	//loss : ln ( sumation ) / number of batchsize
 	Dtype loss;
 	caffe_gpu_log(alpha_pi_sum_.count(), alpha_pi_sum_.gpu_data(), batch_loss_.mutable_gpu_data());
@@ -196,6 +129,70 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
 	if (std::isnan(loss) || std::isinf(loss)){
 		printf("loss invalid value.\n");
+
+		Dtype norm_box[10];
+		Dtype diff_box[90], diff_squre_box[90];
+		Dtype bot_box[110], label_box[9];
+		Dtype dist_box[10];
+		Dtype sub;
+		Dtype norm;
+		Dtype alpha_pi_sum__box, alpha_pi_sum__box_temp;
+		for (int i = 0; i < batch_size; i++){
+			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 90], sizeof(Dtype) * 90, cudaMemcpyDeviceToHost);
+			cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+			cudaMemcpy(bot_box, &bottom_data[110 * i], sizeof(Dtype) * 110, cudaMemcpyDeviceToHost);
+			cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 90], sizeof(Dtype) * 90, cudaMemcpyDeviceToHost);
+			cudaMemcpy(norm_box, &diff_norm_.gpu_data()[i * 10], sizeof(Dtype) * 10, cudaMemcpyDeviceToHost);
+			cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * 10], sizeof(Dtype) * 10, cudaMemcpyDeviceToHost);
+			cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
+
+			for (int j = 0; j < 110; j++)
+				if (std::isnan(bot_box[j]) || std::isinf(bot_box[j]))
+					printf("bottom data overflow.\n");
+			for (int j = 0; j < 90; j++){
+				int tClass_idx = j / 9;
+				int internal_idx = j % 9;
+				sub = bot_box[tClass_idx * 11 + internal_idx + 1] - label_box[j % 9];
+
+				if (diff_box[j] != sub){
+					printf("diff miss\n");
+				}
+
+				if (diff_squre_box[j] != (sub*sub))
+					printf("square miss\n");
+
+				if (std::isnan(diff_box[j]) || std::isinf(diff_box[j]))
+					printf("diff_box data overflow.\n");
+
+			}
+
+			for (int j = 0; j < 10; j++){
+				norm = 0;
+				for (int k = 0; k < 9; k++)
+					norm += diff_squre_box[j * 9 + k];
+				if (norm != norm_box[j])
+					printf("norm error\n");
+
+			}
+			for (int j = 0; j < 10; j++){
+				Dtype alpha = bot_box[11 * j];
+				Dtype sigma = bot_box[11 * j + 10];
+				Dtype exp_gaussian = exp(-norm_box[j] / sigma / sigma / 2);
+				Dtype gaussian = exp_gaussian / pow(sigma, 9) / pow(2 * MATH_PI, 9 / 2);
+				Dtype dist_temp = alpha * gaussian;
+				if (std::isnan(dist_box[j]) || std::isinf(dist_box[j]) || dist_box[j] < 0)
+					printf("norm_box data overflow.\n");
+
+			}
+
+			alpha_pi_sum__box_temp = 0;
+			for (int j = 0; j < 10; j++){
+				alpha_pi_sum__box_temp += dist_box[j];
+
+			}
+			if (alpha_pi_sum__box_temp != alpha_pi_sum__box)
+				printf("summation error");
+		}
 	}
 }
 
