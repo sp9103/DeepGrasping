@@ -42,8 +42,11 @@ __global__ void kernel_normal_distribution(const int count,
 	CUDA_KERNEL_LOOP(index, count) {
 		Dtype alpha = data[index*param_size];
 		Dtype sigma = data[index*param_size + 1 + data_dim];
+		Dtype sigma_9 = pow(sigma, data_dim);
 		Dtype exp_gaussian = exp(- norm[index] / sigma / sigma / 2);
-		Dtype distribution = exp_gaussian / pow(sigma, data_dim) / pow(2 * MATH_PI, data_dim / 2);
+		Dtype distribution = 0;
+		if (exp_gaussian != 0)
+			distribution = exp_gaussian / pow(sigma, data_dim) / pow(2 * MATH_PI, data_dim / 2);
 		//alpha * gaussian_distribution;
 		alpha_distribution[index] = alpha * distribution;
 	}
@@ -177,8 +180,12 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			for (int j = 0; j < 10; j++){
 				Dtype alpha = bot_box[11 * j];
 				Dtype sigma = bot_box[11 * j + 10];
-				Dtype exp_gaussian = exp(-norm_box[j] / sigma / sigma / 2);
-				Dtype gaussian = exp_gaussian / pow(sigma, 9) / pow(2 * MATH_PI, 9 / 2);
+				float exp_gaussian = exp(-norm / sigma / sigma / 2);
+				float sigma_9 = pow(sigma, 9);
+				float pi_squre = pow(2 * MATH_PI, -9 / 2);
+				float gaussian = 0;
+				if(exp_gaussian !=0)
+					gaussian = exp_gaussian / sigma_9 / pi_squre;
 				Dtype dist_temp = alpha * gaussian;
 				if (std::isnan(dist_box[j]) || std::isinf(dist_box[j]) || dist_box[j] < 0)
 					printf("norm_box data overflow.\n");
