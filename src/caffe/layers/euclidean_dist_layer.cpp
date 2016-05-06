@@ -49,53 +49,30 @@ void EuclideanDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
   int batchsize = bottom[0]->shape()[0];
   int botLen = bottom[0]->shape()[1];
-  Dtype dist = 0;
+  Dtype TotalLeftDist, TotalRightDist, TotalThumbDist;
   const Dtype* diffdata = diff_.cpu_data();
   const Dtype* bot = bottom[1]->cpu_data();
   const Dtype* output = bottom[0]->cpu_data();
+  TotalLeftDist = TotalRightDist = TotalThumbDist = 0;
 
   for (int i = 0; i < batchsize; i++){
 	  float sq = 0;
+	  Dtype LeftDist, RightDist, ThumbDist;
+	  LeftDist = RightDist = ThumbDist = 0;
 	  for (int k = 0; k < 3; k++){
-		  sq += diffdata[botLen*i + k] * diffdata[botLen*i + k];
+		  LeftDist += pow(diffdata[9 * i + 3 * 0 + k], 2);
+		  RightDist += pow(diffdata[9 * i + 3 * 1 + k], 2);
+		  ThumbDist += pow(diffdata[9 * i + 3 * 2 + k], 2);
 	  }
-	  Dtype tempDist = sqrt(sq);
-	  dist += tempDist / batchsize;
-
-	  //int step = diff_.offset(1);
-	  //diffdata += step;
-	  //bot += step;
+	  TotalLeftDist += LeftDist / batchsize;
+	  TotalRightDist += RightDist / batchsize;
+	  TotalThumbDist += ThumbDist / batchsize;
   }
 
-   top[0]->mutable_cpu_data()[0] = dist;
-   LOG(INFO) << "Distance: " << dist;
-
-   //const Dtype* label = bottom[2]->cpu_data();
-   //cv::Mat img(160, 160, CV_32FC3);
-   //for (int i = 0; i < 20; i++){
-	  // char buf[256];
-
-	  // for (int h = 0; h < 160; h++){
-		 //  for (int w = 0; w < 160; w++){
-			//   for (int c = 0; c < 3; c++){
-			//	   //tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)dataimage.at<cv::Vec3b>(h, w)[c]
-			//	   img.at<cv::Vec3f>(h, w)[c] = (float)bot[i * 160 * 160 * 3 + c * 160 * 160 + 160 * h + w];
-			//   }
-		 //  }
-	  // }
-
-	  // cv::Point pos;
-	  // pos.x = output[2 * i + 0];
-	  // pos.y = output[2 * i + 1];
-	  // cv::circle(img, pos, 5, cv::Scalar(0, 0, 255), -1);
-	  // pos.x = label[2 * i + 0];
-	  // pos.y = label[2 * i + 1];
-	  // cv::circle(img, pos, 5, cv::Scalar(255, 0, 0), -1);
-
-	  // sprintf(buf, "%d", i);
-	  // cv::imshow(buf, img);
-	  // cv::waitKey(0);
-   //}
+  top[0]->mutable_cpu_data()[0] = (TotalLeftDist + TotalRightDist + TotalThumbDist);
+   LOG(INFO) << "Left: " << (TotalLeftDist * 10);
+   LOG(INFO) << "Right: " << (TotalRightDist * 10);
+   LOG(INFO) << "Thumb: " << (TotalThumbDist * 10);
 
 }
 
