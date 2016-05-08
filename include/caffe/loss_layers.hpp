@@ -850,6 +850,7 @@ protected:
 	
 	int class_size;
 	int data_dim;
+	bool visualize_;
 
 	Blob<Dtype> diff_;					//(mu-t)
 	Blob<Dtype> diff_square_;			//(mu-t)^2

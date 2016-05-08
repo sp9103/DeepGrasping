@@ -99,6 +99,7 @@ layer {
   convolution_param {
     num_output: 64
     kernel_size: 5
+    stride: 2
     #visualize: 2
     weight_filler {
       type: "xavier"
@@ -178,199 +179,16 @@ layer {
   top: "conv3"
 }
 layer {
-  name: "spatial"
-  type: "Spatial"
+  name: "depth_slice"
+  type: "DepthSlice"
   bottom: "conv3"
-  bottom: "RGB"
-
-  top: "spatial1"
-  spatial_param{
-	alpha: 4
-	#visualize : true
-  }
-}
-layer {
-  name: "depth_concat"
-  type: "DepthConcat"
-  bottom: "spatial1"
   bottom: "Depth"
   top: "Depthconcat"
 }
 layer {
-  name: "crumple1"
-  type: "Crumple"
-  bottom: "Depthconcat"
-  top: "Depthconcat_crumple"
-  crumple_param{
-	mode: 1
-	size : 3
-  }
-}
-##############Transformation network####################
-#fix this network
-layer {
-  name: "uvd_xyz_fc1"
-  type: "InnerProduct"
-  bottom: "Depthconcat_crumple"
-  top: "uvd_xyz_fc1"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 32
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "uvd_xyz_bn1"
-  type: "BatchNorm"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc1"
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  batch_norm_param {
-     use_global_stats : true
-  }
-}
-layer {
-  name: "uvd_xyz_relu1"
-  type: "ReLU"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc1"
-}
-layer {
-  name: "uvd_xyz_fc2"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc2"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 32
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "uvd_xyz_bn2"
-  type: "BatchNorm"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc2"
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  batch_norm_param {
-     use_global_stats : true;
-  }
-}
-layer {
-  name: "uvd_xyz_relu2"
-  type: "ReLU"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc2"
-}
-layer {
-  name: "uvd_xyz_fc3"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc3"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 3
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "xyz_xyz_robot"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc3"
-  top: "xyz_robot"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 3
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-##############################
-layer {
-  name: "crumple2"
-  type: "Crumple"
-  bottom: "xyz_robot"
-  top: "XYZ_robot_crumple"
-  crumple_param{
-	mode: 2
-	size : 192
-  }
-}
-layer {
   name: "fc_pregrasp1"
   type: "InnerProduct"
-  bottom: "XYZ_robot_crumple"
+  bottom: "Depthconcat"
   top: "fc_pregrasp1"
   param {
     lr_mult: 1
@@ -383,7 +201,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 192
+    num_output: 1000
     weight_filler {
       type: "gaussian"
       std: 0.005
@@ -431,7 +249,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 192
+    num_output: 800
     weight_filler {
       type: "gaussian"
       std: 0.005
@@ -479,7 +297,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 192
+    num_output: 200
     weight_filler {
       type: "gaussian"
       std: 0.005

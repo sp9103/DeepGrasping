@@ -233,6 +233,7 @@
     <ClCompile Include="..\..\src\caffe\layers\data_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\deconv_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\depth_concat_layer.cpp" />
+    <ClCompile Include="..\..\src\caffe\layers\depth_slice_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\dropout_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\dummy_data_layer.cpp" />
     <ClCompile Include="..\..\src\caffe\layers\eltwise_layer.cpp" />
@@ -381,6 +382,7 @@
     <CudaCompile Include="..\..\src\caffe\layers\cudnn_tanh_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\deconv_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\depth_concat_layer.cu" />
+    <CudaCompile Include="..\..\src\caffe\layers\depth_slice_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\dropout_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\eltwise_layer.cu" />
     <CudaCompile Include="..\..\src\caffe\layers\embed_layer.cu" />

@@ -43,6 +43,8 @@ void MDNLossLayer<Dtype>::Reshape(
 
   Dtype* multiplier_data = sum_multiplier_.mutable_cpu_data();
   caffe_set(sum_multiplier_.count(), Dtype(1), multiplier_data);
+
+  visualize_ = this->layer_param_.convolution_param().visualize();
 }
 
 template <typename Dtype>

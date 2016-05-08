@@ -130,6 +130,27 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	loss /= bottom[0]->num();
 	top[0]->mutable_cpu_data()[0] = -loss;
 
+	if (visualize_){
+		//write file
+		FILE *fp = fopen("loss_output.txt", "w");
+
+		Dtype *out = new Dtype[class_size * 11];
+		Dtype label_out[9];
+		cudaMemcpy(out, bottom[0]->gpu_data(), sizeof(Dtype) * class_size * 11, cudaMemcpyDeviceToHost);
+		cudaMemcpy(label_out, bottom[1]->gpu_data(), sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+
+		for (int i = 0; i < 9; i++)
+			fprintf(fp, "%f ", label_out[i]);
+		fprintf(fp, "\n");
+
+		for (int i = 0; i < class_size * 11; i++)
+			fprintf(fp, "%f ", out[i]);
+
+		delete[] out;
+
+		fclose(fp);
+	}
+
 	if (std::isnan(loss) || std::isinf(loss)){
 		printf("loss invalid value.\n");
 
