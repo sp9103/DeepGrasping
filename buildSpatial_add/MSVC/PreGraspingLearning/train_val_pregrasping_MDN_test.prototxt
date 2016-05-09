@@ -34,7 +34,7 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData"
+    data_path : "D:/Pregrasp_vis/"
     data_limit : 1
   }
 }

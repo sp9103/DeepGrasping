@@ -14,6 +14,8 @@ layer {
     height : 160
     width : 160
     data_path : "D:/PreGraspingData/Train"
+ 
+    #data_limit : 200
   }
 }
 layer {
@@ -30,7 +32,7 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/Pregrasp_vis/5"
+    data_path : "D:/PreGraspingData/Train"
   }
 }
 layer {
@@ -180,7 +182,7 @@ layer {
   type: "Spatial"
   bottom: "conv3"
   bottom: "RGB"
-
+  bottom: "Depth"
   top: "spatial1"
   spatial_param{
 	alpha: 4
@@ -188,187 +190,9 @@ layer {
   }
 }
 layer {
-  name: "depth_concat"
-  type: "DepthConcat"
-  bottom: "spatial1"
-  bottom: "Depth"
-  top: "Depthconcat"
-}
-layer {
-  name: "crumple1"
-  type: "Crumple"
-  bottom: "Depthconcat"
-  top: "Depthconcat_crumple"
-  crumple_param{
-	mode: 1
-	size : 3
-  }
-}
-##############Transformation network####################
-#fix this network
-layer {
-  name: "uvd_xyz_fc1"
-  type: "InnerProduct"
-  bottom: "Depthconcat_crumple"
-  top: "uvd_xyz_fc1"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 32
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "uvd_xyz_bn1"
-  type: "BatchNorm"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc1"
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  batch_norm_param {
-     use_global_stats : true
-  }
-}
-layer {
-  name: "uvd_xyz_relu1"
-  type: "ReLU"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc1"
-}
-layer {
-  name: "uvd_xyz_fc2"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc2"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 32
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "uvd_xyz_bn2"
-  type: "BatchNorm"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc2"
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  batch_norm_param {
-     use_global_stats : true;
-  }
-}
-layer {
-  name: "uvd_xyz_relu2"
-  type: "ReLU"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc2"
-}
-layer {
-  name: "uvd_xyz_fc3"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc3"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 3
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "xyz_xyz_robot"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc3"
-  top: "xyz_robot"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 3
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-##############################
-layer {
-  name: "crumple2"
-  type: "Crumple"
-  bottom: "xyz_robot"
-  top: "XYZ_robot_crumple"
-  crumple_param{
-	mode: 2
-	size : 192
-  }
-}
-layer {
   name: "fc_pregrasp1"
   type: "InnerProduct"
-  bottom: "XYZ_robot_crumple"
+  bottom: "spatial1"
   top: "fc_pregrasp1"
   param {
     lr_mult: 1
@@ -510,10 +334,10 @@ layer {
   top: "fc_pregrasp3"
 }
 layer {
-  name: "PreGraspPostion"
-  type: "InnerProduct"
+  name: "GMM"
+  type: "GMM"
   bottom: "fc_pregrasp3"
-  top: "PreGraspPostion"
+  top: "GMM"
   param {
     lr_mult: 1
     #decay_mult: 1
@@ -524,8 +348,11 @@ layer {
     lr_mult: 1
     decay_mult: 0
   }
+  gmm_param{
+	data_dim : 9
+	class_size : 5
+  }
   inner_product_param {
-    num_output: 9
     weight_filler {
       type: "gaussian"
       std: 0.005
@@ -536,20 +363,33 @@ layer {
     }
   }
 }
-layer {
-  name: "distance"
-  type: "EuclideanDist"
-  bottom: "PreGraspPostion"
+layer{
+  name: "MDNDist"
+  type: "MDNDist"
+  bottom: "GMM"
   bottom: "Position"
-  top: "accuracy"
+  top: "distance"
+  loss_weight: 1
+  gmm_param{
+	data_dim : 9
+	class_size : 5
+  }
   include {
     phase: TEST
   }
 }
 layer {
-  name: "EuclideanLoss"
-  type: "EuclideanLoss"
-  bottom: "PreGraspPostion"
+  name: "MDNLoss"
+  type: "MDNLoss"
+  bottom: "GMM"
   bottom: "Position"
   top: "l2_error"
+  loss_weight: 1
+  gmm_param{
+	data_dim : 9
+	class_size : 5
+  }
+   spatial_param{
+	#visualize : true
+  }
 }

@@ -74,6 +74,9 @@ void EuclideanDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
    LOG(INFO) << "Right: " << (TotalRightDist * 10);
    LOG(INFO) << "Thumb: " << (TotalThumbDist * 10);
 
+   //FILE *fp = fopen("cnn_result.txt", "w");
+   //for (int i = 0; i < 9; i++)	fprintf(fp, "%f ", bottom[0]->cpu_data()[i]);
+   //fclose(fp);
 }
 
 INSTANTIATE_CLASS(EuclideanDistLayer);

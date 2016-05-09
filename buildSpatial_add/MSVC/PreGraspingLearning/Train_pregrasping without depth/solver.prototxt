@@ -1,0 +1,18 @@
+net: "PreGraspingLearning/Train_pregrasping without depth/train_val_pregrasping_without_Depth.prototxt"
+
+test_iter: 10
+test_interval: 1000
+test_initialization: false
+
+#base_lr: 0.000005
+base_lr: 0.00001
+lr_policy: "inv"
+gamma: 0.0001
+power: 0.75
+display: 10
+max_iter: 600000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 5000
+snapshot_prefix: "PreGraspingLearning/Train_pregrasping without depth/snapshot/End_to_End"
+solver_mode: GPU

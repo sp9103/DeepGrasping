@@ -18,6 +18,18 @@ void CrumpleLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	Dtype* top_data = top[0]->mutable_gpu_data();
 
 	caffe_copy(bottom[0]->count(), bottom_data, top_data);
+
+	//if (Mode_ == 2){
+	//	FILE *fp = fopen("feature.txt", "w");
+	//	Dtype featurebox[192];
+	//	cudaMemcpy(featurebox, top[0]->gpu_data(), sizeof(Dtype) * 192, cudaMemcpyDeviceToHost);
+
+	//	for (int i = 0; i < 192 / 3; i++){
+	//		fprintf(fp, "%f %f %f\n", featurebox[i * 3 + 0], featurebox[i * 3 + 1], featurebox[i * 3 + 2]);
+	//	}
+
+	//	fclose(fp);
+	//}
 }
 
 template <typename Dtype>

@@ -2,7 +2,7 @@ net: "PreGraspingLearning/train_val_pregrasping_cnn_bn.prototxt"
 
 test_iter: 10
 test_interval: 1000
-test_initialization: false
+test_initialization: true
 
 base_lr: 0.01
 lr_policy: "inv"
