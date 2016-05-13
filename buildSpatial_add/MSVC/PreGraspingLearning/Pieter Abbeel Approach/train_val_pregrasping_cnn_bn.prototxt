@@ -9,13 +9,11 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 400
+    batch_size: 200
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData_All/Train"
- 
-    #data_limit : 200
+    data_path : "D:/PreGraspingData/Train"
   }
 }
 layer {
@@ -28,11 +26,11 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-    batch_size: 20
+    batch_size: 200
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData_All/Train"
+    data_path : "D:/PreGraspingData/Train"
   }
 }
 layer {
@@ -512,10 +510,10 @@ layer {
   top: "fc_pregrasp3"
 }
 layer {
-  name: "GMM"
-  type: "GMM"
+  name: "PreGraspPostion"
+  type: "InnerProduct"
   bottom: "fc_pregrasp3"
-  top: "GMM"
+  top: "PreGraspPostion"
   param {
     lr_mult: 1
     #decay_mult: 1
@@ -526,11 +524,8 @@ layer {
     lr_mult: 1
     decay_mult: 0
   }
-  gmm_param{
-	data_dim : 9
-	class_size : 5
-  }
   inner_product_param {
+    num_output: 9
     weight_filler {
       type: "gaussian"
       std: 0.005
@@ -541,33 +536,20 @@ layer {
     }
   }
 }
-layer{
-  name: "MDNDist"
-  type: "MDNDist"
-  bottom: "GMM"
+layer {
+  name: "distance"
+  type: "EuclideanDist"
+  bottom: "PreGraspPostion"
   bottom: "Position"
-  top: "distance"
-  loss_weight: 1
-  gmm_param{
-	data_dim : 9
-	class_size : 5
-  }
+  top: "accuracy"
   include {
     phase: TEST
   }
 }
 layer {
-  name: "MDNLoss"
-  type: "MDNLoss"
-  bottom: "GMM"
+  name: "EuclideanLoss"
+  type: "EuclideanLoss"
+  bottom: "PreGraspPostion"
   bottom: "Position"
   top: "l2_error"
-  loss_weight: 1
-  gmm_param{
-	data_dim : 9
-	class_size : 5
-  }
-   spatial_param{
-	#visualize : true
-  }
 }

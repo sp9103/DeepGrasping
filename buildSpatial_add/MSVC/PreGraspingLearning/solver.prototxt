@@ -1,13 +1,11 @@
-#net: "PreGraspingLearning/train_val_pregrasping.prototxt"
 net: "PreGraspingLearning/train_val_pregrasping_bn.prototxt"
-#net: "PreGraspingLearning/train_val_pregrasping_MDN_test.prototxt"
 
 test_iter: 10
 test_interval: 1000
-test_initialization: true
+test_initialization: false
 
-#base_lr: 0.000005
-base_lr: 0.00001
+base_lr: 0.000005
+#base_lr: 0.00001
 lr_policy: "inv"
 gamma: 0.0001
 power: 0.75
@@ -17,4 +15,5 @@ momentum: 0.9
 weight_decay: 0.0005
 snapshot: 5000
 snapshot_prefix: "PreGraspingLearning/snapshot_pregrasping/End_to_End"
+#snapshot_prefix: "PreGraspingLearning/snapshot_pregrasping_initAuto/End_to_End"
 solver_mode: GPU

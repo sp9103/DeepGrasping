@@ -9,11 +9,11 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 400
+    batch_size: 200
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData_All/Train"
+    data_path : "D:/PreGraspingData/Train"
  
     #data_limit : 200
   }
@@ -28,11 +28,11 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-    batch_size: 20
+    batch_size: 200
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData_All/Train"
+    data_path : "D:/PreGraspingData/Train"
   }
 }
 layer {
@@ -197,180 +197,9 @@ layer {
   top: "Depthconcat"
 }
 layer {
-  name: "crumple1"
-  type: "Crumple"
-  bottom: "Depthconcat"
-  top: "Depthconcat_crumple"
-  crumple_param{
-	mode: 1
-	size : 3
-  }
-}
-##############Transformation network####################
-#fix this network
-layer {
-  name: "uvd_xyz_fc1"
-  type: "InnerProduct"
-  bottom: "Depthconcat_crumple"
-  top: "uvd_xyz_fc1"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 32
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "uvd_xyz_bn1"
-  type: "BatchNorm"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc1"
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  batch_norm_param {
-     use_global_stats : true
-  }
-}
-layer {
-  name: "uvd_xyz_relu1"
-  type: "ReLU"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc1"
-}
-layer {
-  name: "uvd_xyz_fc2"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc1"
-  top: "uvd_xyz_fc2"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 32
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "uvd_xyz_bn2"
-  type: "BatchNorm"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc2"
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  param {
-    lr_mult: 0
-  }
-  batch_norm_param {
-     use_global_stats : true;
-  }
-}
-layer {
-  name: "uvd_xyz_relu2"
-  type: "ReLU"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc2"
-}
-layer {
-  name: "uvd_xyz_fc3"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc2"
-  top: "uvd_xyz_fc3"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 3
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "xyz_xyz_robot"
-  type: "InnerProduct"
-  bottom: "uvd_xyz_fc3"
-  top: "xyz_robot"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 3
-    weight_filler {
-      type: "gaussian"
-      std: 0.005
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-##############################
-layer {
-  name: "crumple2"
-  type: "Crumple"
-  bottom: "xyz_robot"
-  top: "XYZ_robot_crumple"
-  crumple_param{
-	mode: 2
-	size : 192
-  }
-}
-layer {
   name: "fc_pregrasp1"
   type: "InnerProduct"
-  bottom: "XYZ_robot_crumple"
+  bottom: "Depthconcat"
   top: "fc_pregrasp1"
   param {
     lr_mult: 1

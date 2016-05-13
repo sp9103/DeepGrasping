@@ -208,7 +208,8 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 					fscanf(fp, "%f %f %f\n", &Thumb.x, &Thumb.y, &Thumb.z);
 
 					//손가락 재정렬
-					//calcFingerSort(&UpperLeft, &UpperRight, &Thumb);
+					if (!calcFingerSort(&UpperLeft, &UpperRight, &Thumb))
+						continue;
 
 					//mm -> M 단위로 변경
 					posMat.at<float>(0) = UpperLeft.x / 100.f;
@@ -272,7 +273,7 @@ void PreGraspDataLayer<Dtype>::PreGrasp_DataLoadAll(const char* datapath){
 	}
 }
 template <typename Dtype>
-void PreGraspDataLayer<Dtype>::calcFingerSort(cv::Point3f *upperLeft, cv::Point3f *upperRight, cv::Point3f *thumb){
+bool PreGraspDataLayer<Dtype>::calcFingerSort(cv::Point3f *upperLeft, cv::Point3f *upperRight, cv::Point3f *thumb){
 	cv::Point3f tLeft = *upperLeft;
 	cv::Point3f tRight = *upperRight;
 	cv::Point3f tThumb = *thumb;
@@ -283,30 +284,12 @@ void PreGraspDataLayer<Dtype>::calcFingerSort(cv::Point3f *upperLeft, cv::Point3
 	float thumbleftDist = calcDist3D(tThumb, tLeft);
 
 	//엄지 교환
-	if (leftRightDist < thumbRightDist && leftRightDist < thumbleftDist){
-		*thumb = tThumb;
-	}
-	else if (thumbRightDist < leftRightDist && thumbRightDist < thumbleftDist){
-		*thumb = tLeft;
-		SWAP(tThumb, tLeft, swapPoint);
-	}
-	else if (thumbleftDist < leftRightDist && thumbleftDist < thumbRightDist){
-		*thumb = tRight;
-		SWAP(tThumb, tRight, swapPoint);
+	if (!(leftRightDist < thumbRightDist && leftRightDist < thumbleftDist)){
+		//printf("Data Error\n");
+		return false;
 	}
 
-	//Left Right 구분
-	thumbRightDist = calcDist3D(*thumb, tRight);
-	thumbleftDist = calcDist3D(*thumb, tLeft);
-
-	if (thumbleftDist < thumbRightDist)
-		SWAP(tRight, tLeft, swapPoint);
-	
-	*upperLeft = tLeft;
-	*upperRight = tRight;
-
-	if (*upperLeft == *upperRight || *upperRight == *thumb)
-		printf("Finger Data Error.\n");
+	return true;
 }
 
 template <typename Dtype>
