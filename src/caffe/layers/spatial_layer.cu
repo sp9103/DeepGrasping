@@ -204,6 +204,7 @@ void SpatialLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
 		  Dtype pos[128];
 		  Dtype *Map = new Dtype[160 * 160 * 3];
+		  cv::Mat SigleFeature(160, 160, CV_8UC3);
 		  cv::Point pointList[64];
 
 		  cudaMemcpy(pos, &top[0]->gpu_data()[i * topCount], sizeof(Dtype) * topCount, cudaMemcpyDeviceToHost);
@@ -215,6 +216,7 @@ void SpatialLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		  for (int h = 0; h < dataHeight; h++){
 			  for (int w = 0; w < datatWidth; w++){
 				  for (int c = 0; c < 3; c++){
+					  SigleFeature.at<cv::Vec3b>(h, w)[c] = uchar(Map[c*dataHeight*datatWidth + datatWidth*h + w] * 255.f);
 					  FeaturePlot.at<cv::Vec3b>(s_row + h, s_col + w)[c] = uchar(Map[c*dataHeight*datatWidth + datatWidth*h + w] * 255.f);
 					  FeaturePlot.at<cv::Vec3b>(s_row + h, s_col + w + datatWidth)[c] = uchar(Map[c*dataHeight*datatWidth + datatWidth*h + w] * 255.f);
 				  }
@@ -236,8 +238,10 @@ void SpatialLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 				  if (Max < softmap[s])
 					  Max = softmap[s];
 
-			  if (Max > softThreshold)
+			  if (Max > softThreshold){
 				  cv::circle(FeaturePlot, cv::Point(s_col + pointList[j].x, s_row + pointList[j].y), 3, cv::Scalar(B, G, R), -1);
+				  cv::circle(SigleFeature, cv::Point(pointList[j].x, pointList[j].y), 3, cv::Scalar(B, G, R), -1);
+			  }
 		  }
 		  for (int j = topCount / 2 / 2; j < topCount; j++){
 			  uchar R = (j * 7) % 255;
@@ -253,6 +257,10 @@ void SpatialLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			  if (Max > softThreshold)
 				  cv::circle(FeaturePlot, cv::Point(s_col + datatWidth + pointList[j].x, s_row + pointList[j].y), 3, cv::Scalar(B, G, R), -1);
 		  }
+
+		  char buf[256];
+		  sprintf(buf, "%d.bmp", i);
+		  cv::imwrite(buf, SigleFeature);
 
 		  delete[] softmap;
 		  delete[] Map;

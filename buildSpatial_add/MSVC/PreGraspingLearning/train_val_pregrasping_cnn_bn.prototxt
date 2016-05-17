@@ -13,7 +13,7 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData/Train"
+    data_path : "D:/PreGraspingData_All/Train"
   }
 }
 layer {
@@ -26,11 +26,11 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-    batch_size: 200
+    batch_size: 20
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/Pregrasp_vis/5"
+    data_path : "D:/PreGraspingData_All/Train"
   }
 }
 layer {
