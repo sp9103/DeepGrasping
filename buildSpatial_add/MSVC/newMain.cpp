@@ -415,9 +415,9 @@ int main(int argc, char** argv) {
 	//int targc = 5;^
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
 	//	"--weights=PreGraspingLearning/snapshot_pregrasping_initAuto/Pregrasp_InitAuto.caffemodel", "--gpu=all" };
-	/*int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
-		"--weights=PreGraspingLearning/End_to_End_iter_MDN.caffemodel", "--gpu=all" };*/
+	//int targc = 5;
+	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
+	//	"--weights=PreGraspingLearning/snapshot_pregrasping/End_to_End_iter_30000_TrainingData_All.caffemodel", "--gpu=all" };
 	//int targc = 5;
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver_cnn.prototxt",
 	//	"--weights=PreGraspingLearning/vision_layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };
