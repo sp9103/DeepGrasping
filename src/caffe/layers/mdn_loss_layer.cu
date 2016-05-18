@@ -87,7 +87,7 @@ __global__ void kernel_delta_calc(const int count,
 		}
 		else if (internal_idx == param_size - 1){		//sigma delta calculate
 			//bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / sigma / sigma - data_dim);
-			if (sigma == 0.0000001)
+			if (sigma == 0.1f)
 				bottom_diff[index] = 0.0f;
 			else
 				bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / sigma / sigma - data_dim) / sigma;
@@ -165,6 +165,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		Dtype sub;
 		Dtype norm;
 		Dtype alpha_pi_sum__box, alpha_pi_sum__box_temp;
+		Dtype batch_loss_temp;
 		for (int i = 0; i < batch_size; i++){
 			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 45], sizeof(Dtype) * 45, cudaMemcpyDeviceToHost);
 			cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
@@ -173,6 +174,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			cudaMemcpy(norm_box, &diff_norm_.gpu_data()[i * class_size], sizeof(Dtype) * class_size, cudaMemcpyDeviceToHost);
 			cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * class_size], sizeof(Dtype) * class_size, cudaMemcpyDeviceToHost);
 			cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
+			cudaMemcpy(&batch_loss_temp, &batch_loss_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
 
 			for (int j = 0; j < 55; j++)
 				if (std::isnan(bot_box[j]) || std::isinf(bot_box[j]))
