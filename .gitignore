@@ -117,3 +117,5 @@ MANIFEST-*
 Inceptionism
 *.idx3-ubyte
 *.idx1-ubyte
+*.suo
+*.exe
