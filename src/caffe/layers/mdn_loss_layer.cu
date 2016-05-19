@@ -87,7 +87,7 @@ __global__ void kernel_delta_calc(const int count,
 		}
 		else if (internal_idx == param_size - 1){		//sigma delta calculate
 			//bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / sigma / sigma - data_dim);
-			if (sigma == 0.1f)
+			if (sigma == 0.5f)
 				bottom_diff[index] = 0.0f;
 			else
 				bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / sigma / sigma - data_dim) / sigma;

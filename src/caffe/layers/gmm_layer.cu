@@ -21,7 +21,7 @@ __global__ void sigmaExp(const int nthreads, const int param_size, Dtype* const 
 			topdata[index] = exp(topdata[index]);
 		else if (vecIdx == (param_size - 1))		//sigma
 			//topdata[index] = exp(topdata[index]);
-			topdata[index] = max(0.0f, topdata[index]) + 0.3f;				//max(0, data) + epsilon
+			topdata[index] = max(0.0f, topdata[index]) + 0.5f;				//max(0, data) + epsilon
 	}
 }
 
