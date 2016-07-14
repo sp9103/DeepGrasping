@@ -9,11 +9,11 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 400
+    batch_size: 200
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData_All/Train"
+    data_path : "D:/PreGraspingData/Train"
  
     #data_limit : 200
   }
@@ -32,7 +32,7 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/PreGraspingData_All/Train"
+    data_path : "D:/PreGraspingData/Train"
   }
 }
 layer {
@@ -385,12 +385,11 @@ layer {
   inner_product_param {
     num_output: 192
     weight_filler {
-      type: "gaussian"
-      std: 0.005
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
-      value: 0.1
+      value: 0.2
     }
   }
 }
@@ -433,12 +432,11 @@ layer {
   inner_product_param {
     num_output: 192
     weight_filler {
-      type: "gaussian"
-      std: 0.005
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
-      value: 0.1
+      value: 0.2
     }
   }
 }
@@ -481,12 +479,11 @@ layer {
   inner_product_param {
     num_output: 192
     weight_filler {
-      type: "gaussian"
-      std: 0.005
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
-      value: 0.1
+      value: 0.2
     }
   }
 }
@@ -532,12 +529,11 @@ layer {
   }
   inner_product_param {
     weight_filler {
-      type: "gaussian"
-      std: 0.005
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
-      value: 0.1
+      value: 0.2
     }
   }
 }

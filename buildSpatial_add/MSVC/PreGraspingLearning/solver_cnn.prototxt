@@ -13,5 +13,5 @@ max_iter: 600000
 momentum: 0.9
 weight_decay: 0.0005
 snapshot: 5000
-snapshot_prefix: "PreGraspingLearning/snapshot_pregrasping_cnn/End_to_End"
+snapshot_prefix: "PreGraspingLearning/snapshot_pregrasp_initAuto_cnn/End_to_End"
 solver_mode: GPU

@@ -406,9 +406,9 @@ int main(int argc, char** argv) {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////PreGrasping//////////////////////////////////////////////////////////////////////////////////////////////////
-	/*int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
-		"--weights=PreGraspingLearning/vision_layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };*/
+	//int targc = 5;
+	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
+	//	"--weights=PreGraspingLearning/vision_layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };
 	//int targc = 5;
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
 	//	"--weights=PreGraspingLearning/AutoEncoderVision_Layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };
@@ -418,9 +418,9 @@ int main(int argc, char** argv) {
 	//int targc = 5;
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
 	//	"--weights=PreGraspingLearning/snapshot_pregrasping/End_to_End_iter_30000_TrainingData_All.caffemodel", "--gpu=all" };
-	//int targc = 5;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver_cnn.prototxt",
-	//	"--weights=PreGraspingLearning/vision_layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };
+	int targc = 5;
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver_cnn.prototxt",
+		"--weights=PreGraspingLearning/AutoEncoderVision_Layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };
 	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/Train_pregrasping without depth/solver.prototxt",
 		"--weights=PreGraspingLearning/vision_layer.caffemodel", "--gpu=all" };*/
@@ -435,9 +435,9 @@ int main(int argc, char** argv) {
 	//int targc = 5;
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
 	//	"--snapshot=PreGraspingLearning/snapshot_pregrasping/End_to_End_iter_5000.solverstate", "--gpu=all" };
-	int targc = 5;																																	//ตส
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
-		"--snapshot=PreGraspingLearning/snapshot_pregrasping_initAuto/End_to_End_iter_40000.solverstate", "--gpu=all" };
+	//int targc = 5;																																	//ตส
+	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
+	//	"--snapshot=PreGraspingLearning/snapshot_pregrasping_initAuto/End_to_End_iter_40000.solverstate", "--gpu=all" };
 
 	//Pieter abbeel method
 	/*int targc = 5;
