@@ -605,7 +605,7 @@ protected:
 
 	std::vector<cv::Mat> image_blob;						//rgb image
 	std::vector<cv::Mat> depth_blob;						//depth image
-	std::vector<std::pair<int, cv::Mat>> ang_blob;			//pregrasping pos (image idx, pos)
+	std::vector<cv::Mat> ang_blob;			//pregrasping pos (image idx, pos)
 
 	int *randbox;
 	int dataidx;
