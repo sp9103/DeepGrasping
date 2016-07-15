@@ -391,27 +391,12 @@ int main(int argc, char** argv) {
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UnsupervisedRGBD/solver.prototxt", "--snapshot=UnsupervisedRGBD/snapshot_RGB_widthGoogleNet/End_to_End_iter_330000.solverstate", "--gpu=all" };*/
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////uvd_xyz net learning/////////////////////////////////////////////////////////
-	/*int targc = 4;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt", "--gpu=all" };*/
-	/*int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/solver.prototxt",
-		"--weights=UVD_XYZ_net/camera_xyz_robot_xyz/xyz_robot_iter_20000.caffemodel,UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_3_3_iter_100000.caffemodel", "--gpu=all" };*/
-	//int targc = 5;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/uvd_xyz_final(2016.03.31)/solver.prototxt",
-	//"--weights=UVD_XYZ_net/uvd_xyz_final(2016.03.31)/snapshot_uvd_xyz_robot/xyz_robot_iter_600000.caffemodel", "--gpu=all" };
-	//int targc = 5;
-	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=UVD_XYZ_net/uvd_xyz_camera/solver.prototxt",
-	//"--weights=UVD_XYZ_net/snapshot_uvd_xyz/uvd_xyz_3_3_iter_100000.caffemodel", "--gpu=all" };
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	////////////////////////////////////////////////////////PreGrasping//////////////////////////////////////////////////////////////////////////////////////////////////
 	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
 		"--weights=PreGraspingLearning/vision_layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };*/
-	int targc = 5;
+	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
-		"--weights=PreGraspingLearning/AutoEncoderVision_Layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };
+		"--weights=PreGraspingLearning/AutoEncoderVision_Layer.caffemodel,PreGraspingLearning/Transformation_Net.caffemodel", "--gpu=all" };*/
 	//int targc = 5;^
 	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=PreGraspingLearning/solver.prototxt",
 	//	"--weights=PreGraspingLearning/snapshot_pregrasping_initAuto/Pregrasp_InitAuto.caffemodel", "--gpu=all" };
@@ -446,6 +431,11 @@ int main(int argc, char** argv) {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	///////////////////////////////////////////////////////////////Inverse kinematices///////////////////////////////////////////////////////////////////////////////////
+	int targc = 5;
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=IK_Net/solver.prototxt",
+	"--weights=IK_Net/vision_layer.caffemodel", "--gpu=all" };
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	char **argvp;
 
 	argvp = &targv[0];

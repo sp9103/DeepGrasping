@@ -206,6 +206,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				fread(&depthType, sizeof(int), 1, fp);
 				cv::Mat depthMap(depthheight, depthwidth, depthType);
 				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+				fclose(fp);
 
 				//4.¿˙¿Â
 				image_blob.push_back(tempdataMat.clone());

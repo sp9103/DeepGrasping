@@ -13,7 +13,7 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/RGBDData/UnsupervisedLearning"
+    data_path : "D:/self_supervisedData"
  
     #data_limit : 110
   }
@@ -32,14 +32,14 @@ layer {
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/RGBDData/UnsupervisedLearning"
+    data_path : "D:/self_supervisedData"
     data_limit : 1
   }
 }
 layer {
   name: "conv1"
   type: "Convolution"
-  bottom: "data"
+  bottom: "rgb"
   top: "conv1"
   param {
     lr_mult: 1
@@ -182,8 +182,8 @@ layer {
   name: "spatial"
   type: "Spatial"
   bottom: "conv3"
-  bottom: "data"
-  top: "spatial1"
+  bottom: "rgb"
+  top: "spatial"
   spatial_param{
 	alpha: 4
   }

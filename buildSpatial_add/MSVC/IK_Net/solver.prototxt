@@ -1,4 +1,4 @@
-net: "IK_Net/train_val_IK_Net.prototxt"
+net: "IK_Net/train_val_IK_Net_MDN.prototxt"
 
 test_iter: 1
 test_interval: 1000
