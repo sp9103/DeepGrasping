@@ -340,10 +340,10 @@ layer {
   top: "fc_IK3"
 }
 layer {
-  name: "GMM"
-  type: "GMM"
+  name: "robot_angle"
+  type: "InnerProduct"
   bottom: "fc_IK3"
-  top: "GMM"
+  top: "robot_angle"
   param {
     lr_mult: 1
     #decay_mult: 1
@@ -354,11 +354,8 @@ layer {
     lr_mult: 1
     decay_mult: 0
   }
-  gmm_param{
-	data_dim : 9
-	class_size : 5
-  }
   inner_product_param {
+    num_output: 9
     weight_filler {
       type: "gaussian"
       std: 0.005
@@ -369,33 +366,20 @@ layer {
     }
   }
 }
-layer{
-  name: "MDNDist"
-  type: "MDNDist"
-  bottom: "GMM"
+layer {
+  name: "distance"
+  type: "EuclideanDist"
+  bottom: "robot_angle"
   bottom: "angle"
-  top: "distance"
-  loss_weight: 1
-  gmm_param{
-	data_dim : 9
-	class_size : 5
-  }
+  top: "accuracy"
   include {
     phase: TEST
   }
 }
 layer {
-  name: "MDNLoss"
-  type: "MDNLoss"
-  bottom: "GMM"
+  name: "EuclideanLoss"
+  type: "EuclideanLoss"
+  bottom: "robot_angle"
   bottom: "angle"
   top: "l2_error"
-  loss_weight: 1
-  gmm_param{
-	data_dim : 9
-	class_size : 5
-  }
-   spatial_param{
-	#visualize : true
-  }
 }
