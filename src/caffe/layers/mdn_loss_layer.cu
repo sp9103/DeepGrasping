@@ -165,7 +165,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 45], sizeof(Dtype) * 45, cudaMemcpyDeviceToHost);
 			cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
 			cudaMemcpy(bot_box, &bottom_data[55 * i], sizeof(Dtype) * 55, cudaMemcpyDeviceToHost);
-			cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 45], sizeof(Dtype) * 90, cudaMemcpyDeviceToHost);
+			cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 45], sizeof(Dtype) * 45, cudaMemcpyDeviceToHost);
 			cudaMemcpy(norm_box, &diff_norm_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);

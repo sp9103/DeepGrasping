@@ -112,6 +112,9 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	TCHAR szDir[MAX_PATH] = { 0, };
+	//angle min max
+	int angle_max[9] = { 251000, 251000, 251000, 251000, 151875, 151875, 4095, 4095, 4095 };
+	const float div_factor = 100.f;
 
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, datapath, strlen(datapath), szDir, MAX_PATH);
 	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
@@ -184,7 +187,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				bool angError = false;
 				for (int i = 0; i < 9; i++){
 					fscanf(fp, "%d", &angBox[i]);
-					angMat.at<float>(i) = (float)angBox[i];
+					angMat.at<float>(i) = (float)angBox[i] * 18.f / (angle_max[i] / 10.f) / div_factor;
 					if (angBox[i] >= 250950 || angBox[i] <= -250950){
 						angError = true;
 						break;

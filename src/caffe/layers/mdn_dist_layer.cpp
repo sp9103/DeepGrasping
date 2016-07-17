@@ -45,20 +45,19 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype *bottom_data = bottom[0]->cpu_data();
   const Dtype *label_data = bottom[1]->cpu_data();
   int min_idx = -1;
-  Dtype TotalLeftDist, TotalRightDist, TotalThumbDist;
-  Dtype LeftDist, RightDist, ThumbDist;
   Dtype MeanDist, presentDist, TotalDist;
   Dtype alpha, alphasum;
   Dtype *diff = new Dtype[data_dim];
+  Dtype ang_diff[9], ang_total[9];
   //Dtype diff[90];
-  Dtype bot_box[110];
+  Dtype bot_box[55];
   Dtype label_box[9];
 
-  TotalLeftDist = TotalRightDist = TotalThumbDist = TotalDist = 0;
+  for (int i = 0; i < data_dim; i++)	ang_total[i] = 0;
   for (int i = 0; i < batch_size; i++){
 	  MeanDist = FLT_MAX;
 	  //alphasum = 0;
-	  memcpy(bot_box, &bottom_data[110 * i], sizeof(Dtype) * 110);
+	  memcpy(bot_box, &bottom_data[55 * i], sizeof(Dtype) * 55);
 	  memcpy(label_box, &label_data[9 * i], sizeof(Dtype) * 9);
 	  for (int j = 0; j < class_size; j++){
 		  presentDist = 0;
@@ -71,22 +70,20 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 		  if (MeanDist > presentDist){
 			  MeanDist = presentDist;
-			  LeftDist = sqrt(pow(diff[0], 2) + pow(diff[1], 2) + pow(diff[2], 2));
-			  RightDist = sqrt(pow(diff[3], 2) + pow(diff[4], 2) + pow(diff[5], 2));
-			  ThumbDist = sqrt(pow(diff[6], 2) + pow(diff[7], 2) + pow(diff[8], 2));
+			  for (int k = 0; k < data_dim; k++)
+				  ang_diff[k] = abs(diff[k]) * 100;
 		  }
 	  }
 
 	  TotalDist += sqrt(MeanDist) / batch_size;
-	  TotalLeftDist += LeftDist / batch_size;
-	  TotalRightDist += RightDist / batch_size;
-	  TotalThumbDist += ThumbDist / batch_size;
+	  for (int j = 0; j < data_dim; j++)
+		  ang_total[j] += ang_diff[j] / batch_size;
   }
 
    top[0]->mutable_cpu_data()[0] = TotalDist;
-   LOG(INFO) << "Left: " << (TotalLeftDist * 10);
-   LOG(INFO) << "Right: " << (TotalRightDist * 10);
-   LOG(INFO) << "Thumb: " << (TotalThumbDist * 10);
+   for (int i = 0; i < data_dim; i++)
+	   printf("%.1f ", ang_total[i]);
+   printf("\n");
 
    delete[] diff;
 }

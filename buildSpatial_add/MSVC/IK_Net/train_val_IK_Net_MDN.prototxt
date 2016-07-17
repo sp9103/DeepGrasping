@@ -9,13 +9,13 @@ layer {
     phase: TRAIN
   }
   sp_unsupervised_data_param {
-    batch_size: 200
+    batch_size: 400
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/self_supervisedData"
+    data_path : "D:/self_supervisedData/TRAIN"
  
-    #data_limit : 110
+    #data_limit : 400
   }
 }
 layer {
@@ -28,12 +28,13 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-    batch_size: 1
+    batch_size: 20
     channels: 3
     height : 160
     width : 160
-    data_path : "D:/self_supervisedData"
-    data_limit : 1
+    data_path : "D:/self_supervisedData/TEST"
+    
+    #data_limit : 20
   }
 }
 layer {
@@ -186,6 +187,7 @@ layer {
   top: "spatial"
   spatial_param{
 	alpha: 4
+          #visualize : true
   }
 }
 layer {
