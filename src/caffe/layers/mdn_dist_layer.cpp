@@ -2,6 +2,8 @@
 #include <functional>
 #include <utility>
 #include <vector>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "caffe/layer.hpp"
 #include "caffe/util/io.hpp"
@@ -71,7 +73,7 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		  if (MeanDist > presentDist){
 			  MeanDist = presentDist;
 			  for (int k = 0; k < data_dim; k++)
-				  ang_diff[k] = abs(diff[k]) * 100;
+				  ang_diff[k] = abs(diff[k]);
 		  }
 	  }
 
@@ -82,7 +84,7 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
    top[0]->mutable_cpu_data()[0] = TotalDist;
    for (int i = 0; i < data_dim; i++)
-	   printf("%.1f ", ang_total[i]);
+	   printf("%.3f ", ang_total[i] * 180.f / M_PI);
    printf("\n");
 
    delete[] diff;

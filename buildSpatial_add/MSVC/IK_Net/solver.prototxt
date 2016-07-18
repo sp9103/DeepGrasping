@@ -1,6 +1,6 @@
 net: "IK_Net/train_val_IK_Net_MDN.prototxt"
 
-test_iter: 1
+test_iter: 10
 test_interval: 1000
 test_initialization: false
 

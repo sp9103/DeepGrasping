@@ -12,6 +12,9 @@
 #include <Windows.h>
 #include <time.h>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #define SWAP(a,b,t) (t)=(a), (a)=(b), (b)=(t)
 
 namespace caffe {
@@ -187,7 +190,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				bool angError = false;
 				for (int i = 0; i < 9; i++){
 					fscanf(fp, "%d", &angBox[i]);
-					angMat.at<float>(i) = (float)angBox[i] * 18.f / (angle_max[i] / 10.f) / div_factor;
+					angMat.at<float>(i) = (float)angBox[i] / angle_max[i] *  M_PI;
 					if (angBox[i] >= 250950 || angBox[i] <= -250950){
 						angError = true;
 						break;
