@@ -28,7 +28,7 @@ layer {
     phase: TEST
   }
   sp_unsupervised_data_param {
-    batch_size: 300
+    batch_size: 30
     channels: 3
     height : 160
     width : 160
