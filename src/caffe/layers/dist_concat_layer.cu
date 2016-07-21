@@ -12,7 +12,7 @@
 namespace caffe {
 
 	template <typename Dtype>
-	__global__ void spatial_depth_concat(const int count, const int width, const int height,
+	__global__ void spatial_dist_concat(const int count, const int width, const int height,
 		const Dtype* spatial_pos, const Dtype* depthval, Dtype* topdata) {
 		CUDA_KERNEL_LOOP(index, count) {
 			const int Internal_idx = index % 3;
@@ -34,7 +34,7 @@ namespace caffe {
 	}
 
 	template <typename Dtype>
-	__global__ void concat_spatial_backward(const int count,
+	__global__ void concat_dist_backward(const int count,
 		const Dtype* topdiff, Dtype* spatial) {
 		CUDA_KERNEL_LOOP(index, count) {
 			const int featureIdx = index / 2;
@@ -47,23 +47,23 @@ namespace caffe {
 	}
 
 	template <typename Dtype>
-	void DepthConcatLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+	void DistConcatLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
 		const int topcount = top[0]->count();
 		const int tWidth = bottom[1]->shape()[1];
 		const int tHeight = bottom[1]->shape()[2];
 
 		const Dtype* spatialPos = bottom[0]->gpu_data();						//spatial feature
-		const Dtype* depthImg = bottom[1]->gpu_data();							//Depth image
+		const Dtype* dist = bottom[1]->gpu_data();							//Depth image
 
 		//concatenation
-		spatial_depth_concat<Dtype> << <CAFFE_GET_BLOCKS(topcount),
+		spatial_dist_concat<Dtype> << <CAFFE_GET_BLOCKS(topcount),
 			CAFFE_CUDA_NUM_THREADS >> >(topcount, tWidth, tHeight,
-			spatialPos, depthImg, top[0]->mutable_gpu_data());
+			spatialPos, dist, top[0]->mutable_gpu_data());
 	}
 
 	template <typename Dtype>
-	void DepthConcatLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+	void DistConcatLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 		const vector<bool>& propagate_down,
 		const vector<Blob<Dtype>*>& bottom) {
 		const Dtype* topdiff = top[0]->gpu_diff();
@@ -72,10 +72,10 @@ namespace caffe {
 		const int spatialcount = bottom[0]->count();
 
 		//sptial positon Layer로만 diff를 생성해줘야함
-		concat_spatial_backward<Dtype> << <CAFFE_GET_BLOCKS(spatialcount),
+		concat_dist_backward<Dtype> << <CAFFE_GET_BLOCKS(spatialcount),
 			CAFFE_CUDA_NUM_THREADS >> >(spatialcount, topdiff, spatialDiff);
 	}
 
-	INSTANTIATE_LAYER_GPU_FUNCS(DepthConcatLayer);
+	INSTANTIATE_LAYER_GPU_FUNCS(DistConcatLayer);
 
 }  // namespace caffe

@@ -10,9 +10,9 @@
 namespace caffe {
 
 	template <typename Dtype>
-	void DepthConcatLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+	void DistConcatLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
-		const int num_output = bottom[0]->shape()[1] * 3 / 2;
+		const int num_output = bottom[0]->shape()[1] + 1;
 		N_ = num_output;
 		const int axis = bottom[0]->CanonicalAxisIndex(
 			this->layer_param_.spatial_param().axis());
@@ -21,7 +21,7 @@ namespace caffe {
 	}
 
 	template <typename Dtype>
-	void DepthConcatLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
+	void DistConcatLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
 		// Figure out the dimensions
 		const int axis = bottom[0]->CanonicalAxisIndex(
@@ -41,23 +41,23 @@ namespace caffe {
 	}
 
 	template <typename Dtype>
-	void DepthConcatLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+	void DistConcatLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
 		//not implemented
 	}
 
 	template <typename Dtype>
-	void DepthConcatLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
+	void DistConcatLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 		const vector<bool>& propagate_down,
 		const vector<Blob<Dtype>*>& bottom) {
 		//not implemented
 	}
 
 #ifdef CPU_ONLY
-	STUB_GPU(SpatialLayer);
+	STUB_GPU(DistConcatLayer);
 #endif
 
-	INSTANTIATE_CLASS(DepthConcatLayer);
-	REGISTER_LAYER_CLASS(DepthConcat);
+	INSTANTIATE_CLASS(DistConcatLayer);
+	REGISTER_LAYER_CLASS(DistConcat);
 
 }  // namespace caffe
