@@ -36,11 +36,10 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       " positive in memory_data_param";
 
   top[0]->Reshape(batch_size_, channels_, height_, width_);					//[0] RGB
-  std::vector<int> depth_dim(3);
-  depth_dim[0] = batch_size_;
-  depth_dim[1] = height_;
-  depth_dim[2] = width_;
-  top[1]->Reshape(depth_dim);												//[1] Depth
+  std::vector<int> dist_dim(2);
+  dist_dim[0] = batch_size_;
+  dist_dim[1] = 1;
+  top[1]->Reshape(dist_dim);												//[1] Distance
 
   std::vector<int> ang_dim(2);
   ang_dim[0] = batch_size_;
@@ -82,7 +81,7 @@ template <typename Dtype>
 void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
-	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
+	Dtype* dist_data = top[1]->mutable_cpu_data();					//[1] Depth
 
 	Dtype* ang_data = top[2]->mutable_cpu_data();					//[2] ang postion (label)
 
@@ -91,14 +90,14 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		int idx = randbox[dataidx];
 		cv::Mat angMat = this->ang_blob.at(idx);
 		cv::Mat	rgbImg = this->image_blob.at(idx);
-		cv::Mat depthImg = this->depth_blob.at(idx).clone();
+		Dtype dist = (Dtype)dist_blob.at(idx);
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
-		caffe_copy(height_ * width_, depthImg.ptr<Dtype>(0), depth_data);
+		caffe_copy(1, &dist, dist_data);
 		caffe_copy(9, angMat.ptr<Dtype>(0), ang_data);
 
 		rgb_data += top[0]->offset(1);
-		depth_data += top[1]->offset(1);
+		dist_data += top[1]->offset(1);
 		ang_data += top[2]->offset(1);
 
 		if (dataidx + 1 >= this->ang_blob.size()){
@@ -158,7 +157,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				if (ProcFileName[0] == '.')
 					continue;
 
-				char AngDataFile[256], ProcImageFile[256], DepthFile[256];
+				char AngDataFile[256], ProcImageFile[256], distFile[256];
 				int imgCount = image_blob.size();
 				FILE *fp;
 				int filePathLen;
@@ -199,25 +198,25 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				if (angError)		continue;
 				fclose(fp);
 
-				//3.Depth 읽어오기
-				sprintf(DepthFile, "%s\\DEPTHMAP\\%s", tBuf, ProcFileName);
-				int depthwidth, depthheight, depthType;
-				filePathLen = strlen(DepthFile);
-				DepthFile[filePathLen - 1] = 'n';
-				DepthFile[filePathLen - 2] = 'i';
-				DepthFile[filePathLen - 3] = 'b';
-				fp = fopen(DepthFile, "rb");
-				fread(&depthwidth, sizeof(int), 1, fp);
-				fread(&depthheight, sizeof(int), 1, fp);
-				fread(&depthType, sizeof(int), 1, fp);
-				cv::Mat depthMap(depthheight, depthwidth, depthType);
-				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+				//3.distance 읽어오기
+				sprintf(distFile, "%s\\DISTANCE\\%s", tBuf, ProcFileName);
+				filePathLen = strlen(distFile);
+				distFile[filePathLen - 1] = 't';
+				distFile[filePathLen - 2] = 'x';
+				distFile[filePathLen - 3] = 't';
+				fp = fopen(distFile, "r");
+				if (fp == NULL)		continue;
+				float distTemp;
+				for (int i = 0; i < 9; i++){
+					fscanf(fp, "%f", &distTemp);
+					distTemp = 1200.f - distTemp;
+				}
 				fclose(fp);
 
 				//4.저장
 				image_blob.push_back(tempdataMat.clone());
 				ang_blob.push_back(angMat.clone());
-				depth_blob.push_back(depthMap.clone());
+				dist_blob.push_back(distTemp);
 
 				if ((data_limit_ != 0) && data_limit_ <= ang_blob.size())
 					break;
