@@ -12,23 +12,17 @@
 namespace caffe {
 
 	template <typename Dtype>
-	__global__ void spatial_dist_concat(const int count, const int width, const int height,
-		const Dtype* spatial_pos, const Dtype* depthval, Dtype* topdata) {
+	__global__ void spatial_dist_concat(const int count, const int concat_idx, const int bot_count,
+		const Dtype* spatial_pos, const Dtype* distVal, Dtype* topdata) {
 		CUDA_KERNEL_LOOP(index, count) {
-			const int Internal_idx = index % 3;
-			const int Feature_idx = index / 3;
+			const int interIdx = index % concat_idx;
+			const int outerIdx = index / concat_idx;
 
-			//x pos
-			if (Internal_idx == 0)
-				topdata[index] = spatial_pos[2 * Feature_idx + 0];
-			//y pos
-			else if (Internal_idx == 1)
-				topdata[index] = spatial_pos[2 * Feature_idx + 1];
-			//depth val
-			else if (Internal_idx == 2){
-				const int d_x = width * spatial_pos[2 * Feature_idx + 0];
-				const int d_y = height * spatial_pos[2 * Feature_idx + 1];
-				topdata[index] = depthval[d_x + d_y * width] / 1000.f;
+			if (interIdx == concat_idx - 1){
+				topdata[index] = distVal[outerIdx];
+			}
+			else{
+				topdata[index] = spatial_pos[outerIdx * bot_count + interIdx];
 			}
 		}
 	}
@@ -50,15 +44,15 @@ namespace caffe {
 	void DistConcatLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top) {
 		const int topcount = top[0]->count();
-		const int tWidth = bottom[1]->shape()[1];
-		const int tHeight = bottom[1]->shape()[2];
+		const int concat_idx = bottom[0]->shape()[1] + 1;
+		const int bot_count = bottom[0]->shape()[1];
 
 		const Dtype* spatialPos = bottom[0]->gpu_data();						//spatial feature
 		const Dtype* dist = bottom[1]->gpu_data();							//Depth image
 
 		//concatenation
 		spatial_dist_concat<Dtype> << <CAFFE_GET_BLOCKS(topcount),
-			CAFFE_CUDA_NUM_THREADS >> >(topcount, tWidth, tHeight,
+			CAFFE_CUDA_NUM_THREADS >> >(topcount, concat_idx, bot_count,
 			spatialPos, dist, top[0]->mutable_gpu_data());
 	}
 

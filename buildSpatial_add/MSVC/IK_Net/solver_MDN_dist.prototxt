@@ -1,4 +1,3 @@
-#net: "IK_Net/train_val_IK_Net_MDN.prototxt"
 net: "IK_Net/train_val_IK_Net_MDN_dist.prototxt"
 
 test_iter: 10
