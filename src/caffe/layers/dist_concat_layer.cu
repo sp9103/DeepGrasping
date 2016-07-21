@@ -28,15 +28,13 @@ namespace caffe {
 	}
 
 	template <typename Dtype>
-	__global__ void concat_dist_backward(const int count,
+	__global__ void concat_dist_backward(const int count, const int topCount, const int botCount,
 		const Dtype* topdiff, Dtype* spatial) {
 		CUDA_KERNEL_LOOP(index, count) {
-			const int featureIdx = index / 2;
-			const int id = index % 2;				//0 : xpos, 1 : ypos 2 : depthvalue
+			const int interIdx = index % botCount;
+			const int outerIdx = index / botCount;
 
-			const int topid = featureIdx * 3 + id;
-
-			spatial[index] = topdiff[topid];
+			spatial[index] = topdiff[outerIdx * topCount + interIdx];
 		}
 	}
 
@@ -63,11 +61,13 @@ namespace caffe {
 		const Dtype* topdiff = top[0]->gpu_diff();
 		Dtype* spatialDiff = bottom[0]->mutable_gpu_diff();
 
+		const int topcount = top[0]->shape()[1];
+		const int botcount = bottom[0]->shape()[1];
 		const int spatialcount = bottom[0]->count();
 
 		//sptial positon Layer로만 diff를 생성해줘야함
 		concat_dist_backward<Dtype> << <CAFFE_GET_BLOCKS(spatialcount),
-			CAFFE_CUDA_NUM_THREADS >> >(spatialcount, topdiff, spatialDiff);
+			CAFFE_CUDA_NUM_THREADS >> >(spatialcount, topcount, botcount, topdiff, spatialDiff);
 	}
 
 	INSTANTIATE_LAYER_GPU_FUNCS(DistConcatLayer);
