@@ -44,7 +44,7 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   std::vector<int> ang_dim(2);
   ang_dim[0] = batch_size_;
-  ang_dim[1] = 9;
+  ang_dim[1] = 9+3;
   top[2]->Reshape(ang_dim);													//[2] Angle (label)
 
   //전체 로드

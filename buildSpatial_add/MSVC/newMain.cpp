@@ -433,7 +433,7 @@ int main(int argc, char** argv) {
 
 	///////////////////////////////////////////////////////////////Inverse kinematices///////////////////////////////////////////////////////////////////////////////////
 	int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=IK_Net/solver_MDN_dist.prototxt",
+	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=IK_Net/solver_MDN_endeff.prototxt",
 		"--weights=IK_Net/vision_layer.caffemodel", "--gpu=all" };
 
 	/*int targc = 5;
