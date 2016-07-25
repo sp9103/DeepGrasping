@@ -81,7 +81,7 @@ template <typename Dtype>
 void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
-	Dtype* dist_data = top[1]->mutable_cpu_data();					//[1] Depth
+	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
 
 	Dtype* ang_data = top[2]->mutable_cpu_data();					//[2] ang postion (label)
 
@@ -90,14 +90,14 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		int idx = randbox[dataidx];
 		cv::Mat angMat = this->ang_blob.at(idx);
 		cv::Mat	rgbImg = this->image_blob.at(idx);
-		Dtype dist = (Dtype)dist_blob.at(idx);
+		cv::Mat depth = this->depth_blob.at(idx);
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
-		caffe_copy(1, &dist, dist_data);
+		caffe_copy(height_ * width_, depth.ptr<Dtype>(0), depth_data);
 		caffe_copy(9, angMat.ptr<Dtype>(0), ang_data);
 
 		rgb_data += top[0]->offset(1);
-		dist_data += top[1]->offset(1);
+		depth_data += top[1]->offset(1);
 		ang_data += top[2]->offset(1);
 
 		if (dataidx + 1 >= this->ang_blob.size()){
@@ -157,7 +157,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				if (ProcFileName[0] == '.')
 					continue;
 
-				char AngDataFile[256], ProcImageFile[256], distFile[256];
+				char AngDataFile[256], ProcImageFile[256], DepthFile[256], EndFile[256];
 				int imgCount = image_blob.size();
 				FILE *fp;
 				int filePathLen;
@@ -198,25 +198,38 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				if (angError)		continue;
 				fclose(fp);
 
-				//3.distance 읽어오기
-				sprintf(distFile, "%s\\DISTANCE\\%s", tBuf, ProcFileName);
-				filePathLen = strlen(distFile);
-				distFile[filePathLen - 1] = 't';
-				distFile[filePathLen - 2] = 'x';
-				distFile[filePathLen - 3] = 't';
-				fp = fopen(distFile, "r");
-				if (fp == NULL)		continue;
-				float distTemp;
-				for (int i = 0; i < 9; i++){
-					fscanf(fp, "%f", &distTemp);
-					distTemp = 1200.f - distTemp;
+				//3.depth 읽어오기
+				sprintf(DepthFile, "%s\\DEPTHMAP\\%s", tBuf, ProcFileName);
+				int depthwidth, depthheight, depthType;
+				filePathLen = strlen(DepthFile);
+				DepthFile[filePathLen - 1] = 'n';
+				DepthFile[filePathLen - 2] = 'i';
+				DepthFile[filePathLen - 3] = 'b';
+				fp = fopen(DepthFile, "rb");
+				fread(&depthwidth, sizeof(int), 1, fp);
+				fread(&depthheight, sizeof(int), 1, fp);
+				fread(&depthType, sizeof(int), 1, fp);
+				cv::Mat depthMap(depthheight, depthwidth, depthType);
+				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)        fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+
+				//5.endeffector load
+				sprintf(EndFile, "%s\\ENDEFFECTOR\\%s", tBuf, ProcFileName);
+				filePathLen = strlen(EndFile);
+				EndFile[filePathLen - 1] = 't';
+				EndFile[filePathLen - 2] = 'x';
+				EndFile[filePathLen - 3] = 't';
+				fp = fopen(EndFile, "r");
+				cv::Mat endMap(3, 1, CV_32FC1);
+				float endBox[3];
+				for (int i = 0; i < 3; i++){
+					fscanf(fp, "%f", &endBox[i]);
 				}
 				fclose(fp);
 
-				//4.저장
+				//5.저장
 				image_blob.push_back(tempdataMat.clone());
 				ang_blob.push_back(angMat.clone());
-				dist_blob.push_back(distTemp);
+				depth_blob.push_back(depthMap.clone());
 
 				if ((data_limit_ != 0) && data_limit_ <= ang_blob.size())
 					break;
