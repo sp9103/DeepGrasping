@@ -50,17 +50,17 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype MeanDist, presentDist, TotalDist;
   Dtype alpha, alphasum;
   Dtype *diff = new Dtype[data_dim];
-  Dtype ang_diff[9], ang_total[9];
+  Dtype ang_diff[12], ang_total[12];
   //Dtype diff[90];
   Dtype bot_box[55];
-  Dtype label_box[9];
+  Dtype label_box[12];
 
   for (int i = 0; i < data_dim; i++)	ang_total[i] = 0;
   for (int i = 0; i < batch_size; i++){
 	  MeanDist = FLT_MAX;
 	  //alphasum = 0;
 	  memcpy(bot_box, &bottom_data[55 * i], sizeof(Dtype) * 55);
-	  memcpy(label_box, &label_data[9 * i], sizeof(Dtype) * 9);
+	  memcpy(label_box, &label_data[12 * i], sizeof(Dtype) * 12);
 	  for (int j = 0; j < class_size; j++){
 		  presentDist = 0;
 		  alpha = bottom_data[i*class_size*(data_dim + 2) + j*(data_dim + 2)];
@@ -83,10 +83,12 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 
    top[0]->mutable_cpu_data()[0] = TotalDist;
-   for (int i = 0; i < data_dim; i++)
+   for (int i = 0; i < 9; i++)
 	   printf("%.3f ", ang_total[i] * 180.f / M_PI);
    printf("\n");
-
+   for (int i = 0; i < 3; i++)
+	   printf("%.3fmm ", ang_total[9 + i] * 100.f);
+   printf("\n");
    delete[] diff;
 }
 
