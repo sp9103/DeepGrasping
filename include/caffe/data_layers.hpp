@@ -607,6 +607,7 @@ protected:
 	std::vector<cv::Mat> depth_blob;						//distance
 	std::vector<cv::Mat> ang_blob;			//pregrasping pos (image idx, pos)
 	std::vector<cv::Mat> end_blob;							//end effector
+	std::vector<cv::Mat> label_blob;						//angle + endeffector 12dim
 
 	int *randbox;
 	int dataidx;

@@ -36,10 +36,11 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       " positive in memory_data_param";
 
   top[0]->Reshape(batch_size_, channels_, height_, width_);					//[0] RGB
-  std::vector<int> dist_dim(2);
-  dist_dim[0] = batch_size_;
-  dist_dim[1] = 1;
-  top[1]->Reshape(dist_dim);												//[1] Distance
+  std::vector<int> depth_dim(3);
+  depth_dim[0] = batch_size_;
+  depth_dim[1] = height_;
+  depth_dim[2] = width_;
+  top[1]->Reshape(depth_dim);                                                //[1] Depth
 
   std::vector<int> ang_dim(2);
   ang_dim[0] = batch_size_;
@@ -88,13 +89,15 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	for (int i = 0; i < batch_size_; i++){
 		//RGB 로드
 		int idx = randbox[dataidx];
-		cv::Mat angMat = this->ang_blob.at(idx);
+		cv::Mat labelMat = this->label_blob.at(idx);
+		//cv::Mat angMat = this->ang_blob.at(idx);
 		cv::Mat	rgbImg = this->image_blob.at(idx);
 		cv::Mat depth = this->depth_blob.at(idx);
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
 		caffe_copy(height_ * width_, depth.ptr<Dtype>(0), depth_data);
-		caffe_copy(9, angMat.ptr<Dtype>(0), ang_data);
+		//caffe_copy(9, angMat.ptr<Dtype>(0), ang_data);
+		caffe_copy(12, labelMat.ptr<Dtype>(0), ang_data);
 
 		rgb_data += top[0]->offset(1);
 		depth_data += top[1]->offset(1);
@@ -185,11 +188,13 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				fp = fopen(AngDataFile, "r");
 				if (fp == NULL)		continue;
 				cv::Mat angMat(9, 1, CV_32FC1);
+				cv::Mat labelMat(12, 1, CV_32FC1);
 				int angBox[9];
 				bool angError = false;
 				for (int i = 0; i < 9; i++){
 					fscanf(fp, "%d", &angBox[i]);
 					angMat.at<float>(i) = (float)angBox[i] / angle_max[i] *  M_PI;
+					labelMat.at<float>(i) = angMat.at<float>(i);
 					if (angBox[i] >= 250950 || angBox[i] <= -250950){
 						angError = true;
 						break;
@@ -211,6 +216,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				fread(&depthType, sizeof(int), 1, fp);
 				cv::Mat depthMap(depthheight, depthwidth, depthType);
 				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)        fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+				fclose(fp);
 
 				//5.endeffector load
 				sprintf(EndFile, "%s\\ENDEFFECTOR\\%s", tBuf, ProcFileName);
@@ -219,10 +225,15 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				EndFile[filePathLen - 2] = 'x';
 				EndFile[filePathLen - 3] = 't';
 				fp = fopen(EndFile, "r");
+				if (fp == NULL)
+					continue;
 				cv::Mat endMap(3, 1, CV_32FC1);
 				float endBox[3];
 				for (int i = 0; i < 3; i++){
 					fscanf(fp, "%f", &endBox[i]);
+					//어떻게 처리할것인가
+					endMap.at<float>(i) = endBox[i] / 100.f;				//단위는 10cm 단위
+					labelMat.at<float>(9 + i) = endMap.at<float>(i);
 				}
 				fclose(fp);
 
@@ -230,6 +241,8 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				image_blob.push_back(tempdataMat.clone());
 				ang_blob.push_back(angMat.clone());
 				depth_blob.push_back(depthMap.clone());
+				end_blob.push_back(endMap.clone());
+				label_blob.push_back(labelMat.clone());
 
 				if ((data_limit_ != 0) && data_limit_ <= ang_blob.size())
 					break;
