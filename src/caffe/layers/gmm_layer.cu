@@ -80,15 +80,26 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     if (bias_term_)
       caffe_gpu_axpy<Dtype>(N_, bias_multiplier_.cpu_data()[0],
                             this->blobs_[1]->gpu_data(), top_data);
-  } else {
-    caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasTrans, M_, N_, K_, (Dtype)1.,
-                          bottom_data, weight, (Dtype)0., top_data);
-    if (bias_term_)
-      caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, N_, 1, (Dtype)1.,
-                            bias_multiplier_.gpu_data(),
-                            this->blobs_[1]->gpu_data(), (Dtype)1., top_data);
+  }
+  else {
+	  caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasTrans, M_, N_, K_, (Dtype)1.,
+		  bottom_data, weight, (Dtype)0., top_data);
+	  if (bias_term_)
+		  caffe_gpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, N_, 1, (Dtype)1.,
+		  bias_multiplier_.gpu_data(),
+		  this->blobs_[1]->gpu_data(), (Dtype)1., top_data);
   }
 
+  //Dtype botbox[196], midbox[196];
+  //Dtype topBox[70], ttbox[400][70];
+  //for (int i = 0; i < batchsize; i++){
+	 // cudaMemcpy(&ttbox[i], &top_data[i * 70], sizeof(Dtype) * 70, cudaMemcpyDeviceToHost);
+	 // for (int j = 0; j < 70; j++){
+		//  if (std::isnan(topBox[j]) || std::isinf(topBox[j])){
+		//	  printf("error\n");
+		//  }
+	 // }
+  //}
   //inner product ÀÌÈÄ Gaussian mixture parameter calculate
   //0: alpha, 1~x : mu, x+1 : sigma 
 
@@ -106,6 +117,17 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
   //div alpha
   kernel_alpha_div<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
+
+  
+  //for (int i = 0; i < batchsize; i++){
+	 // cudaMemcpy(topBox, &top_data[i * 70], sizeof(Dtype) * 70, cudaMemcpyDeviceToHost);
+	 // for (int j = 0; j < 70; j++){
+		//  if (std::isnan(topBox[j]) || std::isinf(topBox[j])){
+		//	  cudaMemcpy(botbox, &bottom_data[i * 196], sizeof(Dtype) * 196, cudaMemcpyDeviceToHost);
+		//	  //cudaMemcpy(midbox, &bottom_data[i * 196], sizeof(Dtype) * 196, cudaMemcpyDeviceToHost);
+		//  }
+	 // }
+  //}
 }
 
 template <typename Dtype>

@@ -15,7 +15,7 @@ layer {
     width : 160
     data_path : "D:/self_supervisedData/TRAIN"
  
-    #data_limit : 400
+    data_limit : 400
   }
 }
 layer {
@@ -359,6 +359,8 @@ layer {
   gmm_param{
 	data_dim : 12
 	class_size : 5
+	sigma_min : -20
+	sigma_max : 5
   }
   inner_product_param {
     weight_filler {
@@ -396,6 +398,8 @@ layer {
   gmm_param{
 	data_dim : 12
 	class_size : 5
+	sigma_min : -20
+	sigma_max : 5
   }
    spatial_param{
 	#visualize : true

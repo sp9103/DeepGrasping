@@ -16,6 +16,9 @@ void GMMLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	data_dim = this->layer_param_.gmm_param().data_dim();
 	class_size = this->layer_param_.gmm_param().class_size();
+	sigma_min = this->layer_param_.gmm_param().sigma_min();
+	sigma_max = this->layer_param_.gmm_param().sigma_max();
+	printf("%d %d\n", sigma_max, sigma_min);
   const int num_output = (data_dim + 1 + 1) * class_size;
   bias_term_ = this->layer_param_.inner_product_param().bias_term();
   N_ = num_output;

@@ -52,14 +52,14 @@ void MDNDistLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype *diff = new Dtype[data_dim];
   Dtype ang_diff[12], ang_total[12];
   //Dtype diff[90];
-  Dtype bot_box[55];
+  Dtype bot_box[70];
   Dtype label_box[12];
 
   for (int i = 0; i < data_dim; i++)	ang_total[i] = 0;
   for (int i = 0; i < batch_size; i++){
 	  MeanDist = FLT_MAX;
 	  //alphasum = 0;
-	  memcpy(bot_box, &bottom_data[55 * i], sizeof(Dtype) * 55);
+	  memcpy(bot_box, &bottom_data[70 * i], sizeof(Dtype) * 70);
 	  memcpy(label_box, &label_data[12 * i], sizeof(Dtype) * 12);
 	  for (int j = 0; j < class_size; j++){
 		  presentDist = 0;

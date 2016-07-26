@@ -850,6 +850,8 @@ protected:
 	
 	int class_size;
 	int data_dim;
+	int sigma_min;
+	int sigma_max;
 	bool visualize_;
 
 	Blob<Dtype> diff_;					//(mu-t)

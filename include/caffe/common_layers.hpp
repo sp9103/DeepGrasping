@@ -1015,6 +1015,8 @@ protected:
 	int M_;
 	int K_;
 	int N_;
+	int sigma_min;
+	int sigma_max;
 	bool bias_term_;
 	Blob<Dtype> bias_multiplier_;
 

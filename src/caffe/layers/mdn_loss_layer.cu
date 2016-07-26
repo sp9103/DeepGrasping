@@ -170,38 +170,38 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
 
-			/*for (int j = 0; j < 70; j++)
+			for (int j = 0; j < 70; j++)
 				if (std::isnan(bot_box[j]) || std::isinf(bot_box[j]))
 					printf("bottom data overflow.\n");
-			for (int j = 0; j < 45; j++){
-				int tClass_idx = j / 9;
-				int internal_idx = j % 9;
-				sub = bot_box[tClass_idx * 11 + internal_idx + 1] - label_box[j % 9];
+			//for (int j = 0; j < 45; j++){
+			//	int tClass_idx = j / 9;
+			//	int internal_idx = j % 9;
+			//	sub = bot_box[tClass_idx * 11 + internal_idx + 1] - label_box[j % 9];
 
-				if (diff_box[j] != sub){
-					printf("diff miss\n");
-				}
+			//	if (diff_box[j] != sub){
+			//		printf("diff miss\n");
+			//	}
 
-				if (diff_squre_box[j] != (sub*sub))
-					printf("square miss\n");
+			//	if (diff_squre_box[j] != (sub*sub))
+			//		printf("square miss\n");
 
-				if (std::isnan(diff_box[j]) || std::isinf(diff_box[j]))
-					printf("diff_box data overflow.\n");
+			//	if (std::isnan(diff_box[j]) || std::isinf(diff_box[j]))
+			//		printf("diff_box data overflow.\n");
 
-			}
+			//}
 
 			for (int j = 0; j < 5; j++){
 				norm = 0;
-				for (int k = 0; k < 9; k++)
-					norm += diff_squre_box[j * 9 + k];
+				for (int k = 0; k < 12; k++)
+					norm += diff_squre_box[j * 12 + k];
 				if (norm != norm_box[j])
 					printf("norm error\n");
-
+																																	
 			}
-			for (int j = 0; j < 10; j++){
-				Dtype alpha = bot_box[11 * j];
-				Dtype sigma = bot_box[11 * j + 10];
-				float exp_gaussian = exp(-norm / sigma / sigma / 2);
+			for (int j = 0; j < 5; j++){
+				Dtype alpha = bot_box[14 * j];
+				Dtype sigma = bot_box[14 * j + 13];
+				float exp_gaussian = exp(-norm_box[j] / sigma / sigma / 2);
 				float sigma_9 = pow(sigma, 9);
 				float pi_squre = pow(2 * MATH_PI, -9 / 2);
 				float gaussian = 0;
@@ -219,7 +219,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
 			}
 			if (alpha_pi_sum__box_temp != alpha_pi_sum__box)
-				printf("summation error");*/
+				printf("summation error");
 		}
 	}
 }

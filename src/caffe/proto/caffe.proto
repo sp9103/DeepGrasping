@@ -1377,4 +1377,6 @@ message GMMParameter {
   // Specify the data source.
   optional uint32 class_size = 1;
   optional uint32 data_dim = 2;
+  optional int32  sigma_min = 3 [default = 5];
+  optional int32 sigma_max = 4 [default = -20];
 }
