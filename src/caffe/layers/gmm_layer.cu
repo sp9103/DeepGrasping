@@ -13,15 +13,17 @@ namespace caffe {
 
 //alpha & sigma exponential
 template <typename Dtype>
-__global__ void sigmaExp(const int nthreads, const int param_size, Dtype* const topdata) {
+__global__ void sigmaExp(const int nthreads, const int param_size, int sigma_min, int sigma_max, Dtype* const topdata) {
 	CUDA_KERNEL_LOOP(index, nthreads) {
 		int vecIdx = index % param_size;
 
 		if (vecIdx == 0)						//alpha
 			topdata[index] = exp(topdata[index]);
-		else if(vecIdx == (param_size - 1))		//sigma
-			topdata[index] = exp(topdata[index]);
-			//topdata[index] = 1;
+		else if (vecIdx == (param_size - 1)){	//sigma
+			if (topdata[index] > sigma_max) 		topdata[index] = exp((float)sigma_max);
+			else if (topdata[index] < sigma_min)	topdata[index] = exp((float)sigma_min);
+			else									topdata[index] = exp(topdata[index]);
+		}
 	}
 }
 
@@ -90,16 +92,6 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		  this->blobs_[1]->gpu_data(), (Dtype)1., top_data);
   }
 
-  //Dtype botbox[196], midbox[196];
-  //Dtype topBox[70], ttbox[400][70];
-  //for (int i = 0; i < batchsize; i++){
-	 // cudaMemcpy(&ttbox[i], &top_data[i * 70], sizeof(Dtype) * 70, cudaMemcpyDeviceToHost);
-	 // for (int j = 0; j < 70; j++){
-		//  if (std::isnan(topBox[j]) || std::isinf(topBox[j])){
-		//	  printf("error\n");
-		//  }
-	 // }
-  //}
   //inner product 이후 Gaussian mixture parameter calculate
   //0: alpha, 1~x : mu, x+1 : sigma 
 
@@ -110,24 +102,13 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   kernel_alpha_subtract<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
 
   //exponential - sigma에 exp를 취하는 것이 문제가 될 수 있음. overflow. ( alpha는 위에서 sub max를 해줌으로 overflow 예방) ==> 문제가 있을 경우 1/sigma 를 산출 ==> 1/sigma를 리턴
-  sigmaExp<Dtype> << <CAFFE_GET_BLOCKS(datacount), CAFFE_CUDA_NUM_THREADS >> >(datacount, data_dim+2, top_data);
+  sigmaExp<Dtype> << <CAFFE_GET_BLOCKS(datacount), CAFFE_CUDA_NUM_THREADS >> >(datacount, data_dim+2, sigma_min, sigma_max, top_data);
 
   //sum alpha
   kernel_alpha_sum<Dtype> << <CAFFE_GET_BLOCKS(batchsize), CAFFE_CUDA_NUM_THREADS >> >(batchsize, data_dim + 2, class_size, top_data, maxValue_.mutable_gpu_data());
 
   //div alpha
   kernel_alpha_div<Dtype> << <CAFFE_GET_BLOCKS(class_size * batchsize), CAFFE_CUDA_NUM_THREADS >> >(class_size * batchsize, data_dim + 2, class_size, maxValue_.gpu_data(), top_data);
-
-  
-  //for (int i = 0; i < batchsize; i++){
-	 // cudaMemcpy(topBox, &top_data[i * 70], sizeof(Dtype) * 70, cudaMemcpyDeviceToHost);
-	 // for (int j = 0; j < 70; j++){
-		//  if (std::isnan(topBox[j]) || std::isinf(topBox[j])){
-		//	  cudaMemcpy(botbox, &bottom_data[i * 196], sizeof(Dtype) * 196, cudaMemcpyDeviceToHost);
-		//	  //cudaMemcpy(midbox, &bottom_data[i * 196], sizeof(Dtype) * 196, cudaMemcpyDeviceToHost);
-		//  }
-	 // }
-  //}
 }
 
 template <typename Dtype>

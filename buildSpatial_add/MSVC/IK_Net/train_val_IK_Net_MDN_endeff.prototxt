@@ -15,7 +15,7 @@ layer {
     width : 160
     data_path : "D:/self_supervisedData/TRAIN"
  
-    data_limit : 400
+    #data_limit : 400
   }
 }
 layer {

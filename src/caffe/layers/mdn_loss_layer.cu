@@ -76,7 +76,7 @@ __global__ void kernel_posterior_calc(const int count,
 
 template <typename Dtype>							// backpropagation delta calculation 
 __global__ void kernel_delta_calc(const int count,
-	const int batch_size, const int class_size, const int param_size, const int data_dim, 
+	const int batch_size, const int class_size, const int param_size, const int data_dim, float sigma_min, float sigma_max,
  	const Dtype* posterior, const Dtype* diff, const Dtype* diff_norm, const Dtype* bottom_data, Dtype* bottom_diff) {
 	CUDA_KERNEL_LOOP(index, count) {
  		const int internal_idx = index % param_size;
@@ -86,7 +86,9 @@ __global__ void kernel_delta_calc(const int count,
 			bottom_diff[index] = bottom_data[index] - posterior[class_idx];
 		}
 		else if (internal_idx == param_size - 1){		//sigma delta calculate
-			bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / sigma / sigma - data_dim);
+			if (sigma_min > sigma || sigma_max < sigma)		bottom_diff[index] = 0;
+			else
+				bottom_diff[index] = -posterior[class_idx] * (diff_norm[class_idx] / sigma / sigma - data_dim);
 		}
 		else{											//mu delta calculate
 			const int data_idx = internal_idx - 1;		//[0, datadim-1]
@@ -243,7 +245,7 @@ void MDNLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 
 			//calculate bottom diff (alpha_diff, mu_diff, sigma_diff)
 			kernel_delta_calc<Dtype> << <CAFFE_GET_BLOCKS(bottom[i]->count()), CAFFE_CUDA_NUM_THREADS >> >(bottom[i]->count(),
-				batch_size, class_size, data_dim + 2, data_dim, 
+				batch_size, class_size, data_dim + 2, data_dim, sigma_min, sigma_max,
 				posterior_pi_.gpu_data(), diff_.gpu_data(), diff_norm_.gpu_data(), bottom_data, bottom_diff);
 		}
 	}
