@@ -359,7 +359,7 @@ layer {
   gmm_param{
 	data_dim : 12
 	class_size : 5
-	sigma_min : -20
+	sigma_min : -3
 	sigma_max : 5
   }
   inner_product_param {
@@ -398,7 +398,7 @@ layer {
   gmm_param{
 	data_dim : 12
 	class_size : 5
-	sigma_min : -20
+	sigma_min : -3
 	sigma_max : 5
   }
    spatial_param{

@@ -163,6 +163,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		Dtype sub;
 		Dtype norm;
 		Dtype alpha_pi_sum__box, alpha_pi_sum__box_temp;
+		Dtype lossslice;
 		for (int i = 0; i < batch_size; i++){
 			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 60], sizeof(Dtype) * 60, cudaMemcpyDeviceToHost);
 			cudaMemcpy(label_box, &label[i * 12], sizeof(Dtype) * 12, cudaMemcpyDeviceToHost);
@@ -171,6 +172,10 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			cudaMemcpy(norm_box, &diff_norm_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
+			cudaMemcpy(&lossslice, &batch_loss_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
+
+			if (std::isnan(lossslice) || std::isinf(lossslice))
+				printf("slice of loss overflow\n");
 
 			for (int j = 0; j < 70; j++)
 				if (std::isnan(bot_box[j]) || std::isinf(bot_box[j]))
