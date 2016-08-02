@@ -153,7 +153,7 @@ void ApproachDataLayer<Dtype>::Approach_DataLoadAll(const char* datapath){
 				if (ObjFileName[0] == '.')
 					continue;
 
-				char GraspDataFile[256], ObjImageFile[256], ObjDepthFile[256], GraspCOMFile[256];
+				char MotionDataFile[256], ObjImageFile[256], ObjDepthFile[256], GraspCOMFile[256];
 				int filePathLen;
 				FILE *fp;
 				//1. RGB 읽어오기
@@ -184,13 +184,14 @@ void ApproachDataLayer<Dtype>::Approach_DataLoadAll(const char* datapath){
 				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)		fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
 				fclose(fp);
 
-				//int imgCount = image_blob.size();
-				////Grasping pos 읽어오기
-				//strcpy(GraspDataFile, ObjDir);
-				//filePathLen = strlen(GraspDataFile);
-				//GraspDataFile[filePathLen - 1] = '\0';
-				//strcat(GraspDataFile, ObjFileName);
-				//fp = fopen(GraspDataFile, "r");
+				int imgCount = image_blob.size();
+				//APPROACH motion 
+				sprintf(MotionDataFile, "%s\\APPRAOCH\\%s", tBuf, ObjFileName);
+				filePathLen = strlen(MotionDataFile);
+				MotionDataFile[filePathLen - 4] = '\0';
+				strcat(MotionDataFile, "\\");
+				strcat(MotionDataFile, "MOTION\\*");
+				//fp = fopen(MotionDataFile, "r");
 				//while (!feof(fp)){
 				//	//upper Left, Upper Right, Thumb
 				//	cv::Mat posMat(9, 1, CV_32FC1);
@@ -220,10 +221,12 @@ void ApproachDataLayer<Dtype>::Approach_DataLoadAll(const char* datapath){
 				//		break;
 				//}
 				//fclose(fp);
+				//motion file search
 
 				//save
 				image_blob.push_back(tempdataMat.clone());
 				depth_blob.push_back(depthMap.clone());
+				//approach_blob.push_back();
 
 				if ((data_limit_ != 0) && data_limit_ <= approach_blob.size())
 					break;
