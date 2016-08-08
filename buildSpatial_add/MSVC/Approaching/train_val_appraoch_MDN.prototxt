@@ -1,7 +1,7 @@
 name: "Appraoching_Net"
 layer {
   name: "data"
-  type: "AppraochData"
+  type: "ApproachData"
   top: "RGB"
   top: "Depth"
   top: "Motion"
@@ -20,7 +20,7 @@ layer {
 }
 layer {
   name: "data"
-  type: "AppraochData"
+  type: "ApproachData"
   top: "RGB"
   top: "Depth"
   top: "Motion"
@@ -182,7 +182,7 @@ layer {
   name: "spatial"
   type: "Spatial"
   bottom: "conv3"
-  bottom: "rgb"
+  bottom: "RGB"
   top: "spatial"
   spatial_param{
 	alpha: 4
@@ -374,7 +374,7 @@ layer{
   name: "MDNDist"
   type: "MDNDist"
   bottom: "GMM_App"
-  bottom: "angle"
+  bottom: "Motion"
   top: "distance"
   loss_weight: 1
   gmm_param{

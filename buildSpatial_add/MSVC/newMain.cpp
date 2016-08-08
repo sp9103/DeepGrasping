@@ -436,9 +436,9 @@ int main(int argc, char** argv) {
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=IK_Net/solver_MDN_endeff.prototxt",
 		"--snapshot=IK_Net/snapshot_IK_NET_endeff/IK_Net_iter_3003.solverstate", "--gpu=all" };*/
 
-	int targc = 5;
-	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=IK_Net/solver_MDN_endeff.prototxt",
-		"--snapshot=IK_Net/snapshot_IK_NET_endeff/IK_Net_iter_30000.solverstate", "--gpu=all" };
+	//int targc = 5;
+	//char *targv[5] = { "bin\\caffe.exe", "train", "--solver=IK_Net/solver_MDN_endeff.prototxt",
+	//	"--snapshot=IK_Net/snapshot_IK_NET_endeff/IK_Net_iter_30000.solverstate", "--gpu=all" };
 
 	/*int targc = 5;
 	char *targv[5] = { "bin\\caffe.exe", "train", "--solver=IK_Net/solver_fc.prototxt",

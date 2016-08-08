@@ -175,6 +175,7 @@ void ApproachDataLayer<Dtype>::Approach_DataLoadAll(const char* datapath){
 				ObjDepthFile[filePathLen - 1] = 'n';
 				ObjDepthFile[filePathLen - 2] = 'i';
 				ObjDepthFile[filePathLen - 3] = 'b';
+				strcat(ObjDepthFile, ".bin");
 				fp = fopen(ObjDepthFile, "rb");
 				if (fp == NULL)	continue;
 				fread(&depthwidth, sizeof(int), 1, fp);
@@ -186,11 +187,16 @@ void ApproachDataLayer<Dtype>::Approach_DataLoadAll(const char* datapath){
 
 				int imgCount = image_blob.size();
 				//APPROACH motion 
+				TCHAR szMotionDir[MAX_PATH] = { 0, };
 				sprintf(MotionDataFile, "%s\\APPRAOCH\\%s", tBuf, ObjFileName);
 				filePathLen = strlen(MotionDataFile);
 				MotionDataFile[filePathLen - 4] = '\0';
 				strcat(MotionDataFile, "\\");
 				strcat(MotionDataFile, "MOTION\\*");
+				MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, MotionDataFile, strlen(MotionDataFile), szMotionDir, MAX_PATH);
+				HANDLE hMotionFind = FindFirstFile(szMotionDir, &class_ffd);
+				while (FindNextFile() ! = ){
+				}
 				//fp = fopen(MotionDataFile, "r");
 				//while (!feof(fp)){
 				//	//upper Left, Upper Right, Thumb
