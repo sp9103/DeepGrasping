@@ -36,16 +36,11 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       " positive in memory_data_param";
 
   top[0]->Reshape(batch_size_, channels_, height_, width_);					//[0] RGB
-  std::vector<int> depth_dim(3);
-  depth_dim[0] = batch_size_;
-  depth_dim[1] = height_;
-  depth_dim[2] = width_;
-  top[1]->Reshape(depth_dim);                                                //[1] Depth
 
   std::vector<int> ang_dim(2);
   ang_dim[0] = batch_size_;
-  ang_dim[1] = 9+3;
-  top[2]->Reshape(ang_dim);													//[2] Angle (label)
+  ang_dim[1] = 9;
+  top[1]->Reshape(ang_dim);													//[1] Angle (label)
 
   //전체 로드
   IK_DataLoadAll(data_path_.c_str());
@@ -82,26 +77,19 @@ template <typename Dtype>
 void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
-	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
-
-	Dtype* ang_data = top[2]->mutable_cpu_data();					//[2] ang postion (label)
+	Dtype* ang_data = top[1]->mutable_cpu_data();					//[2] ang postion (label)
 
 	for (int i = 0; i < batch_size_; i++){
 		//RGB 로드
 		int idx = randbox[dataidx];
-		cv::Mat labelMat = this->label_blob.at(idx);
-		//cv::Mat angMat = this->ang_blob.at(idx);
+		cv::Mat labelMat = this->ang_blob.at(idx);
 		cv::Mat	rgbImg = this->image_blob.at(idx);
-		cv::Mat depth = this->depth_blob.at(idx);
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
-		caffe_copy(height_ * width_, depth.ptr<Dtype>(0), depth_data);
-		//caffe_copy(9, angMat.ptr<Dtype>(0), ang_data);
-		caffe_copy(12, labelMat.ptr<Dtype>(0), ang_data);
+		caffe_copy(9, labelMat.ptr<Dtype>(0), ang_data);
 
 		rgb_data += top[0]->offset(1);
-		depth_data += top[1]->offset(1);
-		ang_data += top[2]->offset(1);
+		ang_data += top[1]->offset(1);
 
 		if (dataidx + 1 >= this->ang_blob.size()){
 			makeRandbox(randbox, this->ang_blob.size());
@@ -146,30 +134,37 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 			HANDLE hDataFind = INVALID_HANDLE_VALUE;
 			char procDir[256];
 			strcpy(procDir, tBuf);
-			strcat(procDir, "\\PROCESSIMG\\*");
+			strcat(procDir, "\\RGB\\*");
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, procDir, strlen(procDir), szProcDir, MAX_PATH);
 			hDataFind = FindFirstFile(szProcDir, &class_ffd);
 
 			while (FindNextFile(hDataFind, &class_ffd) != 0){
-				//1. process Image load
+				//0. RGB 이미지가 있는지를 확인
+				char AngDataFile[256], ProcImageFile[256], RGBFile[256];
 				char ProcFileName[256];
+				int filePathLen;
 				size_t Proclen;
+				FILE *fp;
 				StringCchLength(class_ffd.cFileName, MAX_PATH, &Proclen);
 				WideCharToMultiByte(CP_ACP, 0, class_ffd.cFileName, 256, ProcFileName, 256, NULL, NULL);
 
 				if (ProcFileName[0] == '.')
 					continue;
 
-				char AngDataFile[256], ProcImageFile[256], DepthFile[256], EndFile[256];
-				int imgCount = image_blob.size();
-				FILE *fp;
-				int filePathLen;
+				strcpy(RGBFile, procDir);
+				filePathLen = strlen(RGBFile);
+				RGBFile[filePathLen - 1] = '\0';
+				strcat(RGBFile, ProcFileName);
+				cv::Mat img = cv::imread(RGBFile);
+				if (img.rows == 0)
+					continue;
+
+				//1. process Image load
 				//ProcImage 읽어오기
-				strcpy(ProcImageFile, procDir);
+				sprintf(ProcImageFile, "%s\\PROCESSIMG\\%s", tBuf, ProcFileName);
 				filePathLen = strlen(ProcImageFile);
 				ProcImageFile[filePathLen - 1] = '\0';
-				strcat(ProcImageFile, ProcFileName);
-				cv::Mat img = cv::imread(ProcImageFile);
+				cv::Mat procimg = cv::imread(ProcImageFile);
 				cv::Mat tempdataMat(height_, width_, CV_32FC3);
 				for (int h = 0; h < img.rows; h++){
 					for (int w = 0; w < img.cols; w++){
@@ -194,7 +189,6 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				for (int i = 0; i < 9; i++){
 					fscanf(fp, "%d", &angBox[i]);
 					angMat.at<float>(i) = (float)angBox[i] / angle_max[i] *  M_PI;
-					labelMat.at<float>(i) = angMat.at<float>(i);
 					if (angBox[i] >= 250950 || angBox[i] <= -250950){
 						angError = true;
 						break;
@@ -203,46 +197,9 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				if (angError)		continue;
 				fclose(fp);
 
-				//3.depth 읽어오기
-				sprintf(DepthFile, "%s\\DEPTHMAP\\%s", tBuf, ProcFileName);
-				int depthwidth, depthheight, depthType;
-				filePathLen = strlen(DepthFile);
-				DepthFile[filePathLen - 1] = 'n';
-				DepthFile[filePathLen - 2] = 'i';
-				DepthFile[filePathLen - 3] = 'b';
-				fp = fopen(DepthFile, "rb");
-				fread(&depthwidth, sizeof(int), 1, fp);
-				fread(&depthheight, sizeof(int), 1, fp);
-				fread(&depthType, sizeof(int), 1, fp);
-				cv::Mat depthMap(depthheight, depthwidth, depthType);
-				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)        fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
-				fclose(fp);
-
-				//5.endeffector load
-				sprintf(EndFile, "%s\\ENDEFFECTOR\\%s", tBuf, ProcFileName);
-				filePathLen = strlen(EndFile);
-				EndFile[filePathLen - 1] = 't';
-				EndFile[filePathLen - 2] = 'x';
-				EndFile[filePathLen - 3] = 't';
-				fp = fopen(EndFile, "r");
-				if (fp == NULL)
-					continue;
-				cv::Mat endMap(3, 1, CV_32FC1);
-				float endBox[3];
-				for (int i = 0; i < 3; i++){
-					fscanf(fp, "%f", &endBox[i]);
-					//어떻게 처리할것인가
-					endMap.at<float>(i) = endBox[i] / 100.f;				//단위는 10cm 단위
-					labelMat.at<float>(9 + i) = endMap.at<float>(i);
-				}
-				fclose(fp);
-
 				//5.저장
 				image_blob.push_back(tempdataMat.clone());
 				ang_blob.push_back(angMat.clone());
-				depth_blob.push_back(depthMap.clone());
-				end_blob.push_back(endMap.clone());
-				label_blob.push_back(labelMat.clone());
 
 				if ((data_limit_ != 0) && data_limit_ <= ang_blob.size())
 					break;

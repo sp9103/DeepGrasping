@@ -660,10 +660,7 @@ protected:
 	std::string data_path_;
 
 	std::vector<cv::Mat> image_blob;						//rgb image
-	std::vector<cv::Mat> depth_blob;						//distance
 	std::vector<cv::Mat> ang_blob;			//pregrasping pos (image idx, pos)
-	std::vector<cv::Mat> end_blob;							//end effector
-	std::vector<cv::Mat> label_blob;						//angle + endeffector 12dim
 
 	int *randbox;
 	int dataidx;
