@@ -165,10 +165,10 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		Dtype alpha_pi_sum__box, alpha_pi_sum__box_temp;
 		Dtype lossslice;
 		for (int i = 0; i < batch_size; i++){
-			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 60], sizeof(Dtype) * 60, cudaMemcpyDeviceToHost);
-			cudaMemcpy(label_box, &label[i * 12], sizeof(Dtype) * 12, cudaMemcpyDeviceToHost);
-			cudaMemcpy(bot_box, &bottom_data[70 * i], sizeof(Dtype) * 70, cudaMemcpyDeviceToHost);
-			cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 60], sizeof(Dtype) * 60, cudaMemcpyDeviceToHost);
+			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 45], sizeof(Dtype) * 45, cudaMemcpyDeviceToHost);
+			cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+			cudaMemcpy(bot_box, &bottom_data[55 * i], sizeof(Dtype) * 55, cudaMemcpyDeviceToHost);
+			cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 45], sizeof(Dtype) * 45, cudaMemcpyDeviceToHost);
 			cudaMemcpy(norm_box, &diff_norm_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);
@@ -177,7 +177,7 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 			if (std::isnan(lossslice) || std::isinf(lossslice))
 				printf("slice of loss overflow\n");
 
-			for (int j = 0; j < 70; j++)
+			for (int j = 0; j < 55; j++)
 				if (std::isnan(bot_box[j]) || std::isinf(bot_box[j]))
 					printf("bottom data overflow.\n");
 			//for (int j = 0; j < 45; j++){
@@ -199,15 +199,15 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
 			for (int j = 0; j < 5; j++){
 				norm = 0;
-				for (int k = 0; k < 12; k++)
-					norm += diff_squre_box[j * 12 + k];
+				for (int k = 0; k < 9; k++)
+					norm += diff_squre_box[j * 9 + k];
 				if (norm != norm_box[j])
 					printf("norm error\n");
 																																	
 			}
 			for (int j = 0; j < 5; j++){
-				Dtype alpha = bot_box[14 * j];
-				Dtype sigma = bot_box[14 * j + 13];
+				Dtype alpha = bot_box[11 * j];
+				Dtype sigma = bot_box[11 * j + 10];
 				float exp_gaussian = exp(-norm_box[j] / sigma / sigma / 2);
 				float sigma_9 = pow(sigma, 9);
 				float pi_squre = pow(2 * MATH_PI, -9 / 2);

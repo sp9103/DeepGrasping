@@ -1,4 +1,4 @@
-net: "IK_Net/train_val_IK_Net_MDN_rgbOnly.prototxt"
+net: "IK_Net/train_val_IK_Net_MDN_limit.prototxt"
 
 test_iter: 10
 test_interval: 1000
@@ -13,5 +13,5 @@ max_iter: 600000
 momentum: 0.9
 weight_decay: 0.0005
 snapshot: 10000
-snapshot_prefix: "IK_Net/snapshot_IK_NET_rgbOnly/IK_Net"
+snapshot_prefix: "IK_Net/snapshot_IK_NET_limit/IK_Net"
 solver_mode: GPU

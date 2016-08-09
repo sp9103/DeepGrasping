@@ -3,6 +3,7 @@ layer {
   name: "data"
   type: "IKData"
   top: "rgb"
+  top: "depth"
   top: "angle"
   include {
     phase: TRAIN
@@ -21,6 +22,7 @@ layer {
   name: "data"
   type: "IKData"
   top: "rgb"
+  top: "depth"
   top: "angle"
   include {
     phase: TEST
@@ -189,9 +191,16 @@ layer {
   }
 }
 layer {
+  name: "depth_concat"
+  type: "DepthConcat"
+  bottom: "spatial"
+  bottom: "depth"
+  top: "Depthconcat"
+}
+layer {
   name: "fc_IK1"
   type: "InnerProduct"
-  bottom: "spatial"
+  bottom: "Depthconcat"
   top: "fc_IK1"
   param {
     lr_mult: 1
@@ -352,6 +361,7 @@ layer {
 	class_size : 5
 	sigma_min : -3
 	sigma_max : 5
+
   }
   inner_product_param {
     weight_filler {
