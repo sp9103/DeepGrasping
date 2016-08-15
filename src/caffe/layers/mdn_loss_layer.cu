@@ -165,10 +165,10 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		Dtype alpha_pi_sum__box, alpha_pi_sum__box_temp;
 		Dtype lossslice;
 		for (int i = 0; i < batch_size; i++){
-			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 60], sizeof(Dtype) * 60, cudaMemcpyDeviceToHost);
-			cudaMemcpy(label_box, &label[i * 12], sizeof(Dtype) * 12, cudaMemcpyDeviceToHost);
-			cudaMemcpy(bot_box, &bottom_data[70 * i], sizeof(Dtype) * 70, cudaMemcpyDeviceToHost);
-			cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 60], sizeof(Dtype) * 60, cudaMemcpyDeviceToHost);
+			cudaMemcpy(diff_box, &diff_.gpu_data()[i * 45], sizeof(Dtype) * 45, cudaMemcpyDeviceToHost);
+			cudaMemcpy(label_box, &label[i * 9], sizeof(Dtype) * 9, cudaMemcpyDeviceToHost);
+			cudaMemcpy(bot_box, &bottom_data[55 * i], sizeof(Dtype) * 55, cudaMemcpyDeviceToHost);
+			cudaMemcpy(diff_squre_box, &diff_square_.gpu_data()[i * 45], sizeof(Dtype) * 45, cudaMemcpyDeviceToHost);
 			cudaMemcpy(norm_box, &diff_norm_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(dist_box, &alpha_pi_.gpu_data()[i * 5], sizeof(Dtype) * 5, cudaMemcpyDeviceToHost);
 			cudaMemcpy(&alpha_pi_sum__box, &alpha_pi_sum_.gpu_data()[i], sizeof(Dtype), cudaMemcpyDeviceToHost);

@@ -95,6 +95,9 @@ void GMMLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
   //inner product ¿Ã»ƒ Gaussian mixture parameter calculate
   //0: alpha, 1~x : mu, x+1 : sigma 
 
+  ///////////////////
+  Dtype box[55];
+
   //find alpha max
   kernel_alpha_max<Dtype> << <CAFFE_GET_BLOCKS(batchsize), CAFFE_CUDA_NUM_THREADS >> >(batchsize, data_dim+2, class_size, top_data, maxValue_.mutable_gpu_data());
 

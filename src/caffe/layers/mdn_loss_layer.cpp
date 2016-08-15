@@ -24,6 +24,10 @@ void MDNLossLayer<Dtype>::Reshape(
   int temp_sigma_max = this->layer_param_.gmm_param().sigma_max();
   sigma_min = exp((float)temp_sigma_min);
   sigma_max = exp((float)temp_sigma_max);
+  if (temp_sigma_min >= temp_sigma_max){
+	  sigma_min = -FLT_MAX;
+	  sigma_max = FLT_MAX;
+  }
 
   vector<int> diff_shape(3);		//[batchsize, class_size, data_dim] matrix
   diff_shape[0] = bottom[0]->shape()[0];
