@@ -655,7 +655,7 @@ protected:
 	void IK_DataLoadAll(const char* datapath);
 	bool fileTypeCheck(char *fileName);
 	void makeRandbox(int *arr, int size);
-	void LoadFuc();
+	void LoadFuc(int totalThread, int id);
 
 	int batch_size_, channels_, height_, width_, size_;
 	int n_;
@@ -672,8 +672,9 @@ protected:
 	std::vector<std::string> depth_path;
 	std::vector<std::string> ang_path;
 
-	std::mutex mtx;
-	std::thread LoadThread;
+	std::mutex idx_mtx, save_mtx;
+	std::thread LoadThread[4];
+	int ThreadCount;
 	bool stop_thread;
 
 	int *randbox;

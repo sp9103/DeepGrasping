@@ -58,7 +58,10 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   dataidx = 0;
 
   stop_thread = false;
-  LoadThread = std::thread(&IKDataLayer::LoadFuc, this);
+  ThreadCount = 4;
+  for (int i = 0; i < ThreadCount; i++){
+	  LoadThread[i] = std::thread(&IKDataLayer::LoadFuc, this, ThreadCount, i);
+  }
 }
 
 template <typename Dtype>
@@ -83,14 +86,15 @@ void IKDataLayer<Dtype>::set_batch_size(int new_size) {
 
 template <typename Dtype>
 void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+	const vector<Blob<Dtype>*>& top) {
 	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
 	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
 	Dtype* ang_data = top[2]->mutable_cpu_data();					//[2] ang postion (label)
 
 	stop_thread = true;
-	LoadThread.join();
-	printf("size : %d\n", ang_blob.size());
+	for (int i = 0; i < ThreadCount; i++){
+		LoadThread[i].join();
+	}
 
 	for (int i = 0; i < batch_size_; i++){
 		cv::Mat angMat = *ang_blob.begin();
@@ -111,7 +115,9 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 
 	stop_thread = false;
-	LoadThread = std::thread(&IKDataLayer::LoadFuc, this);
+	for (int i = 0; i < ThreadCount; i++){
+		LoadThread[i] = std::thread(&IKDataLayer::LoadFuc, this, ThreadCount, i);
+	}
 }
 
 template <typename Dtype>
@@ -221,7 +227,7 @@ void IKDataLayer<Dtype>::makeRandbox(int *arr, int size){
 }
 
 template <typename Dtype>
-void IKDataLayer<Dtype>::LoadFuc(){
+void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 	//angle min max
 	int angle_max[9] = { 251000, 251000, 251000, 251000, 151875, 151875, 4095, 4095, 4095 };
 
@@ -229,8 +235,15 @@ void IKDataLayer<Dtype>::LoadFuc(){
 		FILE *fp;
 		int depthwidth, depthheight, depthType;
 
+		idx_mtx.lock();
+		/*if (image_path.size() != 7603)
+			printf("dataIdx = %d\n", dataidx);*/
+		int myIdx = randbox[dataidx];
+		dataidx++;
+		idx_mtx.unlock();
+
 		//RGB load
-		std::string imageFilaPath = image_path.at(dataidx);
+		std::string imageFilaPath = image_path.at(myIdx);
 		cv::Mat img = cv::imread(imageFilaPath);
 		cv::Mat tempdataMat(height_, width_, CV_32FC3);
 		for (int h = 0; h < img.rows; h++){
@@ -242,7 +255,7 @@ void IKDataLayer<Dtype>::LoadFuc(){
 		}
 
 		//Angle load
-		std::string angleFilaPath = ang_path.at(dataidx);
+		std::string angleFilaPath = ang_path.at(myIdx);
 		fp = fopen(angleFilaPath.c_str(), "r");
 		if (fp == NULL)
 			continue;
@@ -260,15 +273,15 @@ void IKDataLayer<Dtype>::LoadFuc(){
 			}
 		}
 		if (angError){
-			ang_path.erase(ang_path.begin() + dataidx);
-			depth_path.erase(depth_path.begin() + dataidx);
-			image_path.erase(image_path.begin() + dataidx);
+			ang_path.erase(ang_path.begin() + myIdx);
+			depth_path.erase(depth_path.begin() + myIdx);
+			image_path.erase(image_path.begin() + myIdx);
 			continue;
 		}
 		fclose(fp);
 
 		//Depth load
-		std::string depthFilePath = depth_path.at(dataidx);
+		std::string depthFilePath = depth_path.at(myIdx);
 		fp = fopen(depthFilePath.c_str(), "rb");
 		if (fp == NULL)
 			continue;
@@ -280,23 +293,23 @@ void IKDataLayer<Dtype>::LoadFuc(){
 		fclose(fp);
 
 		//store
+		save_mtx.lock();
 		image_blob.push_back(tempdataMat);
 		depth_blob.push_back(depthMap);
 		ang_blob.push_back(angMat);
 		labelMat.push_back(labelMat);
+		save_mtx.unlock();
 
-		if (dataidx + 1 >= this->image_path.size()){
+		if (dataidx >= this->image_path.size()){
+			idx_mtx.lock();
 			makeRandbox(randbox, this->image_path.size());
 			dataidx = 0;
+			idx_mtx.unlock();
 		}
-		else
-			dataidx++;
 
 		if (image_blob.size() > 4000)
 			break;
 	}
-
-	stop_thread = true;
 }
 
 INSTANTIATE_CLASS(IKDataLayer);
