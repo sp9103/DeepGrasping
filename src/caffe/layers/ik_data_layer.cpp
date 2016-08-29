@@ -97,7 +97,6 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
 		caffe_copy(height_ * width_, depth.ptr<Dtype>(0), depth_data);
 		caffe_copy(9, angMat.ptr<Dtype>(0), ang_data);
-		//caffe_copy(12, labelMat.ptr<Dtype>(0), ang_data);
 
 		rgb_data += top[0]->offset(1);
 		depth_data += top[1]->offset(1);
@@ -146,7 +145,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 			HANDLE hDataFind = INVALID_HANDLE_VALUE;
 			char procDir[256];
 			strcpy(procDir, tBuf);
-			strcat(procDir, "\\PROCESSIMG\\*");
+			strcat(procDir, "\\PROCESSIMG2\\*");
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, procDir, strlen(procDir), szProcDir, MAX_PATH);
 			hDataFind = FindFirstFile(szProcDir, &class_ffd);
 
@@ -193,7 +192,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				bool angError = false;
 				for (int i = 0; i < 9; i++){
 					fscanf(fp, "%d", &angBox[i]);
-					angMat.at<float>(i) = (float)angBox[i] / angle_max[i] *  M_PI;
+					angMat.at<float>(i) = (float)angBox[i] / angle_max[i] *  180.f;
 					labelMat.at<float>(i) = angMat.at<float>(i);
 					if (angBox[i] >= 250950 || angBox[i] <= -250950){
 						angError = true;
@@ -204,7 +203,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				fclose(fp);
 
 				//3.depth 읽어오기
-				sprintf(DepthFile, "%s\\PROCDEPTH\\%s", tBuf, ProcFileName);
+				sprintf(DepthFile, "%s\\DEPTHMAP2\\%s", tBuf, ProcFileName);
 				int depthwidth, depthheight, depthType;
 				filePathLen = strlen(DepthFile);
 				DepthFile[filePathLen - 1] = 'n';
