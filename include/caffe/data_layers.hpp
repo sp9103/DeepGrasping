@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <list>
 
 #include "hdf5/hdf5.h"
 
@@ -19,6 +20,8 @@
 #include "caffe/util/db.hpp"
 
 #include <opencv2\opencv.hpp>
+#include <thread>
+#include <mutex>
 
 namespace caffe {
 
@@ -652,6 +655,7 @@ protected:
 	void IK_DataLoadAll(const char* datapath);
 	bool fileTypeCheck(char *fileName);
 	void makeRandbox(int *arr, int size);
+	void LoadFuc();
 
 	int batch_size_, channels_, height_, width_, size_;
 	int n_;
@@ -659,11 +663,18 @@ protected:
 
 	std::string data_path_;
 
-	std::vector<cv::Mat> image_blob;						//rgb image
-	std::vector<cv::Mat> depth_blob;						//distance
-	std::vector<cv::Mat> ang_blob;			//pregrasping pos (image idx, pos)
-	std::vector<cv::Mat> end_blob;							//end effector
-	std::vector<cv::Mat> label_blob;						//angle + endeffector 12dim
+	std::list<cv::Mat> image_blob;						//rgb image
+	std::list<cv::Mat> depth_blob;						//distance
+	std::list<cv::Mat> ang_blob;			//pregrasping pos (image idx, pos)
+	std::list<cv::Mat> label_blob;
+
+	std::vector<std::string> image_path;
+	std::vector<std::string> depth_path;
+	std::vector<std::string> ang_path;
+
+	std::mutex mtx;
+	std::thread LoadThread;
+	bool stop_thread;
 
 	int *randbox;
 	int dataidx;

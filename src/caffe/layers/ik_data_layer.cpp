@@ -49,13 +49,16 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   //전체 로드
   IK_DataLoadAll(data_path_.c_str());
-  CHECK_GT(ang_blob.size(), 0) << "data is empty";
+  CHECK_GT(image_path.size(), 0) << "data is empty";
 
   //랜덤 박스 생성
   srand(time(NULL));
-  randbox = (int*)malloc(sizeof(int)*ang_blob.size());
-  makeRandbox(randbox, ang_blob.size());
+  randbox = (int*)malloc(sizeof(int)*image_path.size());
+  makeRandbox(randbox, image_path.size());
   dataidx = 0;
+
+  stop_thread = false;
+  LoadThread = std::thread(&IKDataLayer::LoadFuc, this);
 }
 
 template <typename Dtype>
@@ -83,16 +86,16 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	Dtype* rgb_data = top[0]->mutable_cpu_data();					//[0] RGB
 	Dtype* depth_data = top[1]->mutable_cpu_data();					//[1] Depth
-
 	Dtype* ang_data = top[2]->mutable_cpu_data();					//[2] ang postion (label)
 
+	stop_thread = true;
+	LoadThread.join();
+	printf("size : %d\n", ang_blob.size());
+
 	for (int i = 0; i < batch_size_; i++){
-		//RGB 로드
-		int idx = randbox[dataidx];
-		//cv::Mat labelMat = this->label_blob.at(idx);
-		cv::Mat angMat = this->ang_blob.at(idx);
-		cv::Mat	rgbImg = this->image_blob.at(idx);
-		cv::Mat depth = this->depth_blob.at(idx);
+		cv::Mat angMat = *ang_blob.begin();
+		cv::Mat	rgbImg = *image_blob.begin();
+		cv::Mat depth = *depth_blob.begin();
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
 		caffe_copy(height_ * width_, depth.ptr<Dtype>(0), depth_data);
@@ -102,13 +105,13 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		depth_data += top[1]->offset(1);
 		ang_data += top[2]->offset(1);
 
-		if (dataidx + 1 >= this->ang_blob.size()){
-			makeRandbox(randbox, this->ang_blob.size());
-			dataidx = 0;
-		}
-		else
-			dataidx++;
+		ang_blob.pop_front();
+		image_blob.pop_front();
+		depth_blob.pop_front();
 	}
+
+	stop_thread = false;
+	LoadThread = std::thread(&IKDataLayer::LoadFuc, this);
 }
 
 template <typename Dtype>
@@ -116,9 +119,6 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	TCHAR szDir[MAX_PATH] = { 0, };
-	//angle min max
-	int angle_max[9] = { 251000, 251000, 251000, 251000, 151875, 151875, 4095, 4095, 4095 };
-	const float div_factor = 100.f;
 
 	MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, datapath, strlen(datapath), szDir, MAX_PATH);
 	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
@@ -161,22 +161,13 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 
 				char AngDataFile[256], ProcImageFile[256], DepthFile[256], EndFile[256];
 				int imgCount = image_blob.size();
-				FILE *fp;
 				int filePathLen;
 				//ProcImage 읽어오기
 				strcpy(ProcImageFile, procDir);
 				filePathLen = strlen(ProcImageFile);
 				ProcImageFile[filePathLen - 1] = '\0';
 				strcat(ProcImageFile, ProcFileName);
-				cv::Mat img = cv::imread(ProcImageFile);
-				cv::Mat tempdataMat(height_, width_, CV_32FC3);
-				for (int h = 0; h < img.rows; h++){
-					for (int w = 0; w < img.cols; w++){
-						for (int c = 0; c < img.channels(); c++){
-							tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)img.at<cv::Vec3b>(h, w)[c] / 255.0f;
-						}
-					}
-				}
+				image_path.push_back(ProcImageFile);
 
 				//2. angle 읽어오기
 				sprintf(AngDataFile, "%s\\ANGLE\\%s", tBuf, ProcFileName);
@@ -184,48 +175,15 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				AngDataFile[filePathLen - 1] = 't';
 				AngDataFile[filePathLen - 2] = 'x';
 				AngDataFile[filePathLen - 3] = 't';
-				fp = fopen(AngDataFile, "r");
-				if (fp == NULL)		continue;
-				cv::Mat angMat(9, 1, CV_32FC1);
-				cv::Mat labelMat(9, 1, CV_32FC1);
-				int angBox[9];
-				bool angError = false;
-				for (int i = 0; i < 9; i++){
-					fscanf(fp, "%d", &angBox[i]);
-					angMat.at<float>(i) = (float)angBox[i] / angle_max[i] *  180.f;
-					labelMat.at<float>(i) = angMat.at<float>(i);
-					if (angBox[i] >= 250950 || angBox[i] <= -250950){
-						angError = true;
-						break;
-					}
-				}
-				if (angError)		continue;
-				fclose(fp);
+				ang_path.push_back(AngDataFile);
 
 				//3.depth 읽어오기
 				sprintf(DepthFile, "%s\\DEPTHMAP2\\%s", tBuf, ProcFileName);
-				int depthwidth, depthheight, depthType;
 				filePathLen = strlen(DepthFile);
 				DepthFile[filePathLen - 1] = 'n';
 				DepthFile[filePathLen - 2] = 'i';
 				DepthFile[filePathLen - 3] = 'b';
-				fp = fopen(DepthFile, "rb");
-				if (fp == NULL)		continue;
-				fread(&depthwidth, sizeof(int), 1, fp);
-				fread(&depthheight, sizeof(int), 1, fp);
-				fread(&depthType, sizeof(int), 1, fp);
-				cv::Mat depthMap(depthheight, depthwidth, depthType);
-				for (int i = 0; i < depthMap.rows * depthMap.cols; i++)        fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
-				fclose(fp);
-
-				//5.저장
-				image_blob.push_back(tempdataMat.clone());
-				ang_blob.push_back(angMat.clone());
-				depth_blob.push_back(depthMap.clone());
-				label_blob.push_back(labelMat.clone());
-
-				if ((data_limit_ != 0) && data_limit_ <= ang_blob.size())
-					break;
+				depth_path.push_back(DepthFile);
 			}
 
 		}
@@ -260,6 +218,85 @@ void IKDataLayer<Dtype>::makeRandbox(int *arr, int size){
 		arr[i] = arr[tidx];
 		arr[tidx] = t;
 	}
+}
+
+template <typename Dtype>
+void IKDataLayer<Dtype>::LoadFuc(){
+	//angle min max
+	int angle_max[9] = { 251000, 251000, 251000, 251000, 151875, 151875, 4095, 4095, 4095 };
+
+	while (!stop_thread || ang_blob.size() < batch_size_){
+		FILE *fp;
+		int depthwidth, depthheight, depthType;
+
+		//RGB load
+		std::string imageFilaPath = image_path.at(dataidx);
+		cv::Mat img = cv::imread(imageFilaPath);
+		cv::Mat tempdataMat(height_, width_, CV_32FC3);
+		for (int h = 0; h < img.rows; h++){
+			for (int w = 0; w < img.cols; w++){
+				for (int c = 0; c < img.channels(); c++){
+					tempdataMat.at<float>(c*height_*width_ + width_*h + w) = (float)img.at<cv::Vec3b>(h, w)[c] / 255.0f;
+				}
+			}
+		}
+
+		//Angle load
+		std::string angleFilaPath = ang_path.at(dataidx);
+		fp = fopen(angleFilaPath.c_str(), "r");
+		if (fp == NULL)
+			continue;
+		cv::Mat angMat(9, 1, CV_32FC1);
+		cv::Mat labelMat(9, 1, CV_32FC1);
+		int angBox[9];
+		bool angError = false;
+		for (int i = 0; i < 9; i++){
+			fscanf(fp, "%d", &angBox[i]);
+			angMat.at<float>(i) = (float)angBox[i] / angle_max[i] *  180.f;
+			labelMat.at<float>(i) = angMat.at<float>(i);
+			if (angBox[i] >= 250950 || angBox[i] <= -250950){
+				angError = true;
+				break;
+			}
+		}
+		if (angError){
+			ang_path.erase(ang_path.begin() + dataidx);
+			depth_path.erase(depth_path.begin() + dataidx);
+			image_path.erase(image_path.begin() + dataidx);
+			continue;
+		}
+		fclose(fp);
+
+		//Depth load
+		std::string depthFilePath = depth_path.at(dataidx);
+		fp = fopen(depthFilePath.c_str(), "rb");
+		if (fp == NULL)
+			continue;
+		fread(&depthwidth, sizeof(int), 1, fp);
+		fread(&depthheight, sizeof(int), 1, fp);
+		fread(&depthType, sizeof(int), 1, fp);
+		cv::Mat depthMap(depthheight, depthwidth, depthType);
+		for (int i = 0; i < depthMap.rows * depthMap.cols; i++)        fread(&depthMap.at<float>(i), sizeof(float), 1, fp);
+		fclose(fp);
+
+		//store
+		image_blob.push_back(tempdataMat);
+		depth_blob.push_back(depthMap);
+		ang_blob.push_back(angMat);
+		labelMat.push_back(labelMat);
+
+		if (dataidx + 1 >= this->image_path.size()){
+			makeRandbox(randbox, this->image_path.size());
+			dataidx = 0;
+		}
+		else
+			dataidx++;
+
+		if (image_blob.size() > 4000)
+			break;
+	}
+
+	stop_thread = true;
 }
 
 INSTANTIATE_CLASS(IKDataLayer);

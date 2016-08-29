@@ -15,7 +15,7 @@ layer {
     width : 160
     data_path : "F:/IK_data/TEST"
  
-    data_limit : 50000
+    data_limit : 500
   }
 }
 layer {
@@ -34,7 +34,7 @@ layer {
     width : 160
     data_path : "F:/IK_data/TEST"
     
-    data_limit : 2000
+    data_limit : 200
   }
 }
 layer {
