@@ -157,8 +157,8 @@ void MDNLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 		printf("loss invalid value.\n");
 
 		Dtype norm_box[5];
-		Dtype diff_box[60], diff_squre_box[60];
-		Dtype bot_box[70], label_box[12];
+		Dtype diff_box[45], diff_squre_box[45];
+		Dtype bot_box[55], label_box[9];
 		Dtype dist_box[5];
 		Dtype sub;
 		Dtype norm;

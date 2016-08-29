@@ -188,7 +188,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				fp = fopen(AngDataFile, "r");
 				if (fp == NULL)		continue;
 				cv::Mat angMat(9, 1, CV_32FC1);
-				cv::Mat labelMat(12, 1, CV_32FC1);
+				cv::Mat labelMat(9, 1, CV_32FC1);
 				int angBox[9];
 				bool angError = false;
 				for (int i = 0; i < 9; i++){
