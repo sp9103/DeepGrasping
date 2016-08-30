@@ -236,8 +236,6 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		int depthwidth, depthheight, depthType;
 
 		idx_mtx.lock();
-		/*if (image_path.size() != 7603)
-			printf("dataIdx = %d\n", dataidx);*/
 		int myIdx = randbox[dataidx];
 		dataidx++;
 		idx_mtx.unlock();
