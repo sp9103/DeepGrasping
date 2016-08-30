@@ -242,7 +242,7 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		int depthwidth, depthheight, depthType;
 
 		idx_mtx.lock();
-		int myIdx = randbox[dataidx];
+		int myIdx = randbox[dataidx % FileList.size()];
 		dataidx++;
 		idx_mtx.unlock();
 

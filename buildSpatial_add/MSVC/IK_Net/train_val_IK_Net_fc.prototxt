@@ -14,8 +14,6 @@ layer {
     height : 160
     width : 160
     data_path : "F:/IK_data/TRAIN"
- 
-    data_limit : 50000
   }
 }
 layer {
