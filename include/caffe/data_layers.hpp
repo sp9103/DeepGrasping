@@ -649,6 +649,12 @@ public:
 	int data_limit() { return data_limit_; }
 
 protected:
+	typedef struct path_{
+		std::string image_path;
+		std::string depth_path;
+		std::string ang_path;
+	}FilePath;
+
 	virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		const vector<Blob<Dtype>*>& top);
 
@@ -668,9 +674,7 @@ protected:
 	std::list<cv::Mat> ang_blob;			//pregrasping pos (image idx, pos)
 	std::list<cv::Mat> label_blob;
 
-	std::vector<std::string> image_path;
-	std::vector<std::string> depth_path;
-	std::vector<std::string> ang_path;
+	std::vector<FilePath> FileList;
 
 	std::mutex idx_mtx, save_mtx;
 	std::thread LoadThread[4];

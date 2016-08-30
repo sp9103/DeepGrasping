@@ -49,12 +49,12 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   //전체 로드
   IK_DataLoadAll(data_path_.c_str());
-  CHECK_GT(image_path.size(), 0) << "data is empty";
+  CHECK_GT(FileList.size(), 0) << "data is empty";
 
   //랜덤 박스 생성
   srand(time(NULL));
-  randbox = (int*)malloc(sizeof(int)*image_path.size());
-  makeRandbox(randbox, image_path.size());
+  randbox = (int*)malloc(sizeof(int)*FileList.size());
+  makeRandbox(randbox, FileList.size());
   dataidx = 0;
 
   stop_thread = false;
@@ -157,6 +157,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 
 			while (FindNextFile(hDataFind, &class_ffd) != 0){
 				//1. process Image load
+				FilePath tempPath;
 				char ProcFileName[256];
 				size_t Proclen;
 				StringCchLength(class_ffd.cFileName, MAX_PATH, &Proclen);
@@ -173,7 +174,8 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				filePathLen = strlen(ProcImageFile);
 				ProcImageFile[filePathLen - 1] = '\0';
 				strcat(ProcImageFile, ProcFileName);
-				image_path.push_back(ProcImageFile);
+				//image_path.push_back(ProcImageFile);
+				tempPath.image_path = ProcImageFile;
 
 				//2. angle 읽어오기
 				sprintf(AngDataFile, "%s\\ANGLE\\%s", tBuf, ProcFileName);
@@ -181,7 +183,8 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				AngDataFile[filePathLen - 1] = 't';
 				AngDataFile[filePathLen - 2] = 'x';
 				AngDataFile[filePathLen - 3] = 't';
-				ang_path.push_back(AngDataFile);
+				//ang_path.push_back(AngDataFile);
+				tempPath.ang_path = AngDataFile;
 
 				//3.depth 읽어오기
 				sprintf(DepthFile, "%s\\DEPTHMAP2\\%s", tBuf, ProcFileName);
@@ -189,7 +192,10 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				DepthFile[filePathLen - 1] = 'n';
 				DepthFile[filePathLen - 2] = 'i';
 				DepthFile[filePathLen - 3] = 'b';
-				depth_path.push_back(DepthFile);
+				//depth_path.push_back(DepthFile);
+				tempPath.depth_path = DepthFile;
+
+				FileList.push_back(tempPath);
 			}
 
 		}
@@ -241,7 +247,8 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		idx_mtx.unlock();
 
 		//RGB load
-		std::string imageFilaPath = image_path.at(myIdx);
+		FilePath tempPath = FileList.at(myIdx);
+		std::string imageFilaPath = /*image_path.at(myIdx)*/tempPath.image_path;
 		cv::Mat img = cv::imread(imageFilaPath);
 		cv::Mat tempdataMat(height_, width_, CV_32FC3);
 		for (int h = 0; h < img.rows; h++){
@@ -253,7 +260,7 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		}
 
 		//Angle load
-		std::string angleFilaPath = ang_path.at(myIdx);
+		std::string angleFilaPath = /*ang_path.at(myIdx)*/tempPath.ang_path;
 		fp = fopen(angleFilaPath.c_str(), "r");
 		if (fp == NULL)
 			continue;
@@ -271,15 +278,16 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 			}
 		}
 		if (angError){
-			ang_path.erase(ang_path.begin() + myIdx);
+			/*ang_path.erase(ang_path.begin() + myIdx);
 			depth_path.erase(depth_path.begin() + myIdx);
-			image_path.erase(image_path.begin() + myIdx);
+			image_path.erase(image_path.begin() + myIdx);*/
+			FileList.erase(FileList.begin() + myIdx);
 			continue;
 		}
 		fclose(fp);
 
 		//Depth load
-		std::string depthFilePath = depth_path.at(myIdx);
+		std::string depthFilePath = /*depth_path.at(myIdx)*/tempPath.depth_path;
 		fp = fopen(depthFilePath.c_str(), "rb");
 		if (fp == NULL)
 			continue;
@@ -298,9 +306,9 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		labelMat.push_back(labelMat);
 		save_mtx.unlock();
 
-		if (dataidx >= this->image_path.size()){
+		if (dataidx >= this->FileList.size()){
 			idx_mtx.lock();
-			makeRandbox(randbox, this->image_path.size());
+			makeRandbox(randbox, this->FileList.size());
 			dataidx = 0;
 			idx_mtx.unlock();
 		}
