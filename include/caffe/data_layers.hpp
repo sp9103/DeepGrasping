@@ -675,6 +675,7 @@ protected:
 	std::list<cv::Mat> label_blob;
 
 	std::vector<FilePath> FileList;
+	std::vector<FilePath> BatchList;
 
 	std::mutex idx_mtx, save_mtx;
 	std::thread LoadThread[4];

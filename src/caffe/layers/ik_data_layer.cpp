@@ -59,6 +59,7 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   stop_thread = false;
   ThreadCount = 4;
+  BatchList.clear();
   for (int i = 0; i < ThreadCount; i++){
 	  LoadThread[i] = std::thread(&IKDataLayer::LoadFuc, this, ThreadCount, i);
   }
@@ -115,6 +116,7 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 
 	stop_thread = false;
+	BatchList.clear();
 	for (int i = 0; i < ThreadCount; i++){
 		LoadThread[i] = std::thread(&IKDataLayer::LoadFuc, this, ThreadCount, i);
 	}
@@ -304,6 +306,8 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		depth_blob.push_back(depthMap);
 		ang_blob.push_back(angMat);
 		labelMat.push_back(labelMat);
+		if (BatchList.size() < batch_size_)
+			BatchList.push_back(tempPath);
 		save_mtx.unlock();
 
 		if (dataidx >= this->FileList.size()){
