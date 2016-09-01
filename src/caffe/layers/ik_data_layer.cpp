@@ -59,7 +59,6 @@ void IKDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   stop_thread = false;
   ThreadCount = 4;
-  BatchList.clear();
   for (int i = 0; i < ThreadCount; i++){
 	  LoadThread[i] = std::thread(&IKDataLayer::LoadFuc, this, ThreadCount, i);
   }
@@ -97,14 +96,31 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		LoadThread[i].join();
 	}
 
+	FILE *fp = fopen("C:\\TempCaffeDebugData\\list.txt", "w");
 	for (int i = 0; i < batch_size_; i++){
 		cv::Mat angMat = *ang_blob.begin();
-		cv::Mat	rgbImg = *image_blob.begin();
+		cv::Mat	rgbImg = image_blob.begin()->first;
 		cv::Mat depth = *depth_blob.begin();
 
 		caffe_copy(channels_ * height_ * width_, rgbImg.ptr<Dtype>(0), rgb_data);
 		caffe_copy(height_ * width_, depth.ptr<Dtype>(0), depth_data);
 		caffe_copy(9, angMat.ptr<Dtype>(0), ang_data);
+
+		////////////////////////////////////////////////////////
+		////cv::Mat SigleFeature(160, 160, CV_8UC3);
+		////for (int c = 0; c < 3; c++){
+		////	for (int h = 0; h < 160; h++){
+		////		for (int w = 0; w < 160; w++){
+		////			SigleFeature.at<cv::Vec3b>(h, w)[c] = uchar(rgb_data[c * 160 * 160 + 160 * h + w] * 255.f);
+		////		}
+		////	}
+		////}
+		////char buf[256];
+		////sprintf(buf, "C:\\TempCaffeDebugData\\%d.jpg", i);
+		////cv::imwrite(buf, SigleFeature);
+		//std::string path = image_blob.begin()->second;
+		//fprintf(fp, "%s\n", path.c_str());
+		////////////////////////////////////////////////////////
 
 		rgb_data += top[0]->offset(1);
 		depth_data += top[1]->offset(1);
@@ -114,9 +130,9 @@ void IKDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		image_blob.pop_front();
 		depth_blob.pop_front();
 	}
+	fclose(fp);
 
 	stop_thread = false;
-	BatchList.clear();
 	for (int i = 0; i < ThreadCount; i++){
 		LoadThread[i] = std::thread(&IKDataLayer::LoadFuc, this, ThreadCount, i);
 	}
@@ -153,7 +169,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 			HANDLE hDataFind = INVALID_HANDLE_VALUE;
 			char procDir[256];
 			strcpy(procDir, tBuf);
-			strcat(procDir, "\\PROCESSIMG2\\*");
+			strcat(procDir, "\\PROCESSIMG\\*");
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, procDir, strlen(procDir), szProcDir, MAX_PATH);
 			hDataFind = FindFirstFile(szProcDir, &class_ffd);
 
@@ -189,7 +205,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				tempPath.ang_path = AngDataFile;
 
 				//3.depth 읽어오기
-				sprintf(DepthFile, "%s\\DEPTHMAP2\\%s", tBuf, ProcFileName);
+				sprintf(DepthFile, "%s\\PROCDEPTH\\%s", tBuf, ProcFileName);
 				filePathLen = strlen(DepthFile);
 				DepthFile[filePathLen - 1] = 'n';
 				DepthFile[filePathLen - 2] = 'i';
@@ -299,7 +315,7 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 
 		//store
 		save_mtx.lock();
-		image_blob.push_back(tempdataMat);
+		image_blob.push_back(std::make_pair(tempdataMat, imageFilaPath));
 		depth_blob.push_back(depthMap);
 		ang_blob.push_back(angMat);
 		labelMat.push_back(labelMat);

@@ -231,9 +231,12 @@ void Solver<Dtype>::Step(int iters) {
 		Dtype tempLoss = net_->ForwardBackward(bottom_vec);
 		loss += tempLoss;
 
-		if (tempLoss > 40.f){
-		  printf("Over Loss \n");
-	  }
+		//////////////////////////////////////////////////
+		//printf("%f\n", tempLoss);
+		//if (tempLoss > 40.f){
+		//  printf("Over Loss \n");
+		//  /////////////////////////////////////////////////
+	 // }
     }
     loss /= param_.iter_size();
 

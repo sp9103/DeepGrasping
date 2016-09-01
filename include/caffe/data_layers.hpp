@@ -669,13 +669,12 @@ protected:
 
 	std::string data_path_;
 
-	std::list<cv::Mat> image_blob;						//rgb image
+	std::list<std::pair<cv::Mat, std::string>> image_blob;						//rgb image
 	std::list<cv::Mat> depth_blob;						//distance
 	std::list<cv::Mat> ang_blob;			//pregrasping pos (image idx, pos)
 	std::list<cv::Mat> label_blob;
 
 	std::vector<FilePath> FileList;
-	std::vector<FilePath> BatchList;
 
 	std::mutex idx_mtx, save_mtx;
 	std::thread LoadThread[4];
