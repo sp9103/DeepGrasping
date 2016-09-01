@@ -228,7 +228,12 @@ void Solver<Dtype>::Step(int iters) {
     // accumulate the loss and gradient
     Dtype loss = 0;
     for (int i = 0; i < param_.iter_size(); ++i) {
-      loss += net_->ForwardBackward(bottom_vec);
+		Dtype tempLoss = net_->ForwardBackward(bottom_vec);
+		loss += tempLoss;
+
+		if (tempLoss > 40.f){
+		  printf("Over Loss \n");
+	  }
     }
     loss /= param_.iter_size();
 

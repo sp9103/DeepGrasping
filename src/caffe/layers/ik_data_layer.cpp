@@ -250,7 +250,7 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 
 		//RGB load
 		FilePath tempPath = FileList.at(myIdx);
-		std::string imageFilaPath = /*image_path.at(myIdx)*/tempPath.image_path;
+		std::string imageFilaPath = tempPath.image_path;
 		cv::Mat img = cv::imread(imageFilaPath);
 		cv::Mat tempdataMat(height_, width_, CV_32FC3);
 		for (int h = 0; h < img.rows; h++){
@@ -262,7 +262,7 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		}
 
 		//Angle load
-		std::string angleFilaPath = /*ang_path.at(myIdx)*/tempPath.ang_path;
+		std::string angleFilaPath = tempPath.ang_path;
 		fp = fopen(angleFilaPath.c_str(), "r");
 		if (fp == NULL)
 			continue;
@@ -280,16 +280,13 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 			}
 		}
 		if (angError){
-			/*ang_path.erase(ang_path.begin() + myIdx);
-			depth_path.erase(depth_path.begin() + myIdx);
-			image_path.erase(image_path.begin() + myIdx);*/
 			FileList.erase(FileList.begin() + myIdx);
 			continue;
 		}
 		fclose(fp);
 
 		//Depth load
-		std::string depthFilePath = /*depth_path.at(myIdx)*/tempPath.depth_path;
+		std::string depthFilePath = tempPath.depth_path;
 		fp = fopen(depthFilePath.c_str(), "rb");
 		if (fp == NULL)
 			continue;
@@ -306,8 +303,6 @@ void IKDataLayer<Dtype>::LoadFuc(int totalThread, int id){
 		depth_blob.push_back(depthMap);
 		ang_blob.push_back(angMat);
 		labelMat.push_back(labelMat);
-		if (BatchList.size() < batch_size_)
-			BatchList.push_back(tempPath);
 		save_mtx.unlock();
 
 		if (dataidx >= this->FileList.size()){
