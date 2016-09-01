@@ -30,47 +30,6 @@ void EuclideanLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype dot = caffe_cpu_dot(count, diff_.cpu_data(), diff_.cpu_data());
   Dtype loss = dot / bottom[0]->num() / Dtype(2);
   top[0]->mutable_cpu_data()[0] = loss;
-
-  ////if (!std::isnan(loss)){
-
-  //////////////////////////////////////////////
-  //cv::Mat lossLayer;
-  //const int labelwidth = 40;
-  //const int labelheight = 40;
-  //lossLayer.create(labelheight, labelwidth * 3, CV_32FC1);
-
-  //////////////label & output Ãâ·Â
-  //int cCount = bottom[0]->num() < 10 ? bottom[0]->num() : 10;
-  //for (int c = 0; c < cCount; c++){
-	 // char buf[32];
-	 // Dtype labelarr[1600], outputarr[1600], diffarr[1600];
-	 // memcpy(labelarr, &bottom[1]->cpu_data()[1600 * c], sizeof(Dtype) * 1600);
-	 // memcpy(outputarr, &bottom[0]->cpu_data()[1600 * c], sizeof(Dtype) * 1600);
-	 // memcpy(diffarr, &diff_.cpu_data()[1600 * c], sizeof(Dtype) * 1600);
-
-	 // for (int j = 0; j < labelheight * labelwidth; j++){
-		//  lossLayer.at<float>(j / labelwidth, j % labelwidth) = (float)labelarr[j];
-		//  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth) = (float)outputarr[j];
-	 // }
-
-	 // Dtype max = -9999;
-	 // Dtype min = 9999;
-
-	 // for (int j = 0; j < labelheight * labelwidth; j++){
-		//  if (max < diffarr[j])		max = diffarr[j];
-		//  if (min > diffarr[j])		min = diffarr[j];
-	 // }
-
-	 // for (int j = 0; j < labelheight * labelwidth; j++)
-		//  lossLayer.at<float>(j / labelwidth, j % labelwidth + labelwidth * 2) = (float)((diffarr[j] - min) / (max - min));
-
-	 // sprintf(buf, "Loss_%d", c);
-	 // cv::imshow(buf, lossLayer);
-	 // cv::waitKey(0);
-  //}
-  ////}
-  //cv::destroyAllWindows();
-  //////////////////////////////////////////////////////
 }
 
 template <typename Dtype>
