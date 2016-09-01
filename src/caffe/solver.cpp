@@ -232,21 +232,6 @@ void Solver<Dtype>::Step(int iters) {
     }
     loss /= param_.iter_size();
 
-	////epoch loss
-	//static Dtype totalloss = 0;
-	////static int totalIter = 0;
-	//totalloss += loss;
-	////totalIter++;
-	//if (iter_ % 596 == 0){
-	//	printf("==========epoch loss : %f==========\n", totalloss / 596);
-	//	totalloss = 0;
-	//	//totalIter = 0;
-	//}
-	///*if (){
-	//	static Dtype totalloss = 0;
-	//	totalloss
-	//}*/
-
     // average the loss across iterations for smoothed reporting
     if (losses.size() < average_loss) {
       losses.push_back(loss);
