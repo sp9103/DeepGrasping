@@ -153,7 +153,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 			HANDLE hDataFind = INVALID_HANDLE_VALUE;
 			char procDir[256];
 			strcpy(procDir, tBuf);
-			strcat(procDir, "\\PROCESSIMG2\\*");
+			strcat(procDir, "\\PROCESSIMG\\*");
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, procDir, strlen(procDir), szProcDir, MAX_PATH);
 			hDataFind = FindFirstFile(szProcDir, &class_ffd);
 
@@ -189,7 +189,7 @@ void IKDataLayer<Dtype>::IK_DataLoadAll(const char* datapath){
 				tempPath.ang_path = AngDataFile;
 
 				//3.depth 읽어오기
-				sprintf(DepthFile, "%s\\DEPTHMAP2\\%s", tBuf, ProcFileName);
+				sprintf(DepthFile, "%s\\PROCDEPTH\\%s", tBuf, ProcFileName);
 				filePathLen = strlen(DepthFile);
 				DepthFile[filePathLen - 1] = 'n';
 				DepthFile[filePathLen - 2] = 'i';
